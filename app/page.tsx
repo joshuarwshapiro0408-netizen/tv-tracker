@@ -1,3 +1,5 @@
-export default function Home() {
-  return <div>TV Tracker — coming soon</div>
+import { redirect } from 'next/navigation'
+
+export default function RootPage() {
+  redirect('/login')
 }
