@@ -1,14 +1,25 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { tmdbImageUrl } from '@/lib/tmdb'
+import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import LogModal from '@/components/LogModal'
 
 type ShowEntry = {
+  id: string
+  user_id: string
   tmdb_show_id: number
   show_title: string
   show_poster_path: string | null
   overall_score: number | null
+  story_score: number | null
+  performance_score: number | null
+  visuals_score: number | null
+  review: string | null
+  date_watched: string | null
+  status: string
   created_at: string
 }
 
@@ -44,12 +55,16 @@ type Props = {
   loggedShows: ShowEntry[]
   reviews: ReviewEntry[]
   lists: ListEntry[]
+  currentUserId?: string
 }
 
 type Tab = 'shows' | 'reviews' | 'lists' | 'journal'
 
-export default function ProfileTabs({ loggedShows, reviews, lists }: Props) {
+export default function ProfileTabs({ loggedShows, reviews, lists, currentUserId }: Props) {
   const [tab, setTab] = useState<Tab>('shows')
+  const [editingLog, setEditingLog] = useState<ShowEntry | null>(null)
+  const router = useRouter()
+  const supabase = createClient()
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'shows', label: 'SHOWS' },
@@ -57,6 +72,12 @@ export default function ProfileTabs({ loggedShows, reviews, lists }: Props) {
     { key: 'lists', label: 'LISTS' },
     { key: 'journal', label: 'JOURNAL' },
   ]
+
+  async function handleDelete(id: string) {
+    if (!window.confirm('Delete this log entry?')) return
+    await supabase.from('show_logs').delete().eq('id', id)
+    router.refresh()
+  }
 
   return (
     <div>
@@ -66,7 +87,7 @@ export default function ProfileTabs({ loggedShows, reviews, lists }: Props) {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`text-[10px] font-semibold tracking-widest pb-3 border-b-2 -mb-px transition-colors ${
+            className={`text-[10px] font-semibold tracking-widest pb-3 border-b-2 -mb-px transition-colors cursor-pointer ${
               tab === t.key
                 ? 'text-[#1a1a18] border-[#7c9e7a]'
                 : 'text-[#6b6560] border-transparent hover:text-[#1a1a18]'
@@ -92,17 +113,42 @@ export default function ProfileTabs({ loggedShows, reviews, lists }: Props) {
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
               {loggedShows.map(log => {
                 const posterUrl = tmdbImageUrl(log.show_poster_path, 'w185')
+                const isOwner = currentUserId === log.user_id
                 return (
-                  <Link key={`${log.tmdb_show_id}-${log.created_at}`} href={`/shows/${log.tmdb_show_id}`} className="group">
-                    <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
-                      {posterUrl
-                        ? <img src={posterUrl} alt={log.show_title} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
-                        : <div className="flex h-full w-full items-center justify-center text-xs text-[#6b6560] text-center p-1">{log.show_title}</div>}
-                    </div>
+                  <div key={`${log.tmdb_show_id}-${log.created_at}`} className="group relative">
+                    <Link href={`/shows/${log.tmdb_show_id}`}>
+                      <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
+                        {posterUrl
+                          ? <img src={posterUrl} alt={log.show_title} loading="lazy" className="w-full h-full object-cover" />
+                          : <div className="flex h-full w-full items-center justify-center text-xs text-[#6b6560] text-center p-1">{log.show_title}</div>}
+                      </div>
+                    </Link>
                     {log.overall_score && (
                       <p className="text-[10px] text-[#7c9e7a] font-semibold text-center mt-1">{log.overall_score.toFixed(1)}</p>
                     )}
-                  </Link>
+                    {isOwner && (
+                      <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => setEditingLog(log)}
+                          className="w-5 h-5 bg-[#fafaf7]/90 border border-[#e0dbd4] flex items-center justify-center hover:bg-[#7c9e7a] hover:border-[#7c9e7a] hover:text-white transition-colors cursor-pointer"
+                          title="Edit"
+                        >
+                          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(log.id)}
+                          className="w-5 h-5 bg-[#fafaf7]/90 border border-[#e0dbd4] flex items-center justify-center hover:bg-red-500 hover:border-red-500 hover:text-white transition-colors cursor-pointer"
+                          title="Delete"
+                        >
+                          <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )
               })}
             </div>
@@ -126,11 +172,11 @@ export default function ProfileTabs({ loggedShows, reviews, lists }: Props) {
               {reviews.map(log => {
                 const posterUrl = tmdbImageUrl(log.show_poster_path, 'w92')
                 return (
-                  <div key={log.id} className="flex gap-4 border border-[#e0dbd4] bg-[#fafaf7] p-4">
+                  <div key={log.id} className="flex gap-4 border border-[#e0dbd4] bg-[#fafaf7] p-4 hover:border-l-[#7c9e7a] hover:border-l-2 transition-all duration-200">
                     <Link href={`/shows/${log.tmdb_show_id}`} className="flex-shrink-0">
                       <div className="w-12 h-[68px] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4]">
                         {posterUrl
-                          ? <img src={posterUrl} alt={log.show_title} className="w-full h-full object-cover" />
+                          ? <img src={posterUrl} alt={log.show_title} loading="lazy" className="w-full h-full object-cover" />
                           : <div className="w-full h-full bg-[#e0dbd4]" />}
                       </div>
                     </Link>
@@ -188,7 +234,7 @@ export default function ProfileTabs({ loggedShows, reviews, lists }: Props) {
                         return (
                           <div key={i} className="aspect-[2/3] overflow-hidden bg-[#f0ede8]">
                             {url
-                              ? <img src={url} alt="" className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
+                              ? <img src={url} alt="" loading="lazy" className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
                               : <div className="w-full h-full bg-[#e8e3dc]" />}
                           </div>
                         )
@@ -224,30 +270,60 @@ export default function ProfileTabs({ loggedShows, reviews, lists }: Props) {
                 const date = new Date(log.created_at)
                 const prevDate = i > 0 ? new Date(loggedShows[i - 1].created_at) : null
                 const showDateHeader = !prevDate || date.toDateString() !== prevDate.toDateString()
+                const isOwner = currentUserId === log.user_id
                 return (
-                  <div key={`${log.tmdb_show_id}-${log.created_at}`}>
+                  <div key={`${log.id}-${log.created_at}`}>
                     {showDateHeader && (
                       <p className="text-xs font-semibold text-[#6b6560] uppercase tracking-widest pt-5 pb-2 border-t border-[#e0dbd4] first:border-t-0 first:pt-0">
                         {date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                       </p>
                     )}
-                    <div className="flex gap-3 py-2.5 border-b border-[#e0dbd4]/60 last:border-b-0">
+                    <div className="flex gap-3 py-2.5 border-b border-[#e0dbd4]/60 last:border-b-0 group">
                       <Link href={`/shows/${log.tmdb_show_id}`} className="flex-shrink-0">
                         <div className="w-10 h-14 overflow-hidden bg-[#f0ede8] border border-[#e0dbd4]">
                           {posterUrl
-                            ? <img src={posterUrl} alt={log.show_title} className="w-full h-full object-cover" />
+                            ? <img src={posterUrl} alt={log.show_title} loading="lazy" className="w-full h-full object-cover" />
                             : <div className="w-full h-full bg-[#e0dbd4]" />}
                         </div>
                       </Link>
                       <div className="flex-1 flex items-center justify-between min-w-0">
-                        <Link href={`/shows/${log.tmdb_show_id}`} className="text-sm font-semibold text-[#1a1a18] hover:text-[#7c9e7a] transition-colors truncate">
-                          {log.show_title}
-                        </Link>
-                        {log.overall_score && (
-                          <span className="text-sm font-bold text-[#7c9e7a] ml-3 flex-shrink-0 tabular-nums">
-                            {log.overall_score.toFixed(1)}
-                          </span>
-                        )}
+                        <div className="min-w-0">
+                          <Link href={`/shows/${log.tmdb_show_id}`} className="text-sm font-semibold text-[#1a1a18] hover:text-[#7c9e7a] transition-colors truncate block">
+                            {log.show_title}
+                          </Link>
+                          {log.review && (
+                            <p className="text-xs text-[#6b6560] italic mt-0.5 line-clamp-1">&ldquo;{log.review}&rdquo;</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+                          {log.overall_score && (
+                            <span className="text-sm font-bold text-[#7c9e7a] tabular-nums">
+                              {log.overall_score.toFixed(1)}
+                            </span>
+                          )}
+                          {isOwner && (
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => setEditingLog(log)}
+                                className="w-6 h-6 border border-[#e0dbd4] flex items-center justify-center text-[#6b6560] hover:text-[#7c9e7a] hover:border-[#7c9e7a] transition-colors cursor-pointer"
+                                title="Edit"
+                              >
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleDelete(log.id)}
+                                className="w-6 h-6 border border-[#e0dbd4] flex items-center justify-center text-[#6b6560] hover:text-red-500 hover:border-red-400 transition-colors cursor-pointer"
+                                title="Delete"
+                              >
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -256,6 +332,24 @@ export default function ProfileTabs({ loggedShows, reviews, lists }: Props) {
             </div>
           )}
         </div>
+      )}
+
+      {/* Edit modal */}
+      {editingLog && (
+        <LogModal
+          show={{
+            id: editingLog.tmdb_show_id,
+            name: editingLog.show_title,
+            poster_path: editingLog.show_poster_path,
+            backdrop_path: null,
+            overview: '',
+            first_air_date: '',
+            vote_average: 0,
+          }}
+          existingLog={editingLog}
+          onClose={() => setEditingLog(null)}
+          onSaved={() => { setEditingLog(null); router.refresh() }}
+        />
       )}
     </div>
   )

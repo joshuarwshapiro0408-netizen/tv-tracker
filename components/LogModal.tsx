@@ -5,31 +5,43 @@ import { createClient } from '@/lib/supabase/client'
 import RatingInput from '@/components/RatingInput'
 import { TMDBShow, TMDBSeason, TMDBEpisode } from '@/lib/types'
 
+type ExistingLog = {
+  id: string
+  story_score: number | null
+  performance_score: number | null
+  visuals_score: number | null
+  review: string | null
+  date_watched: string | null
+  status: string
+}
+
 type LogModalProps = {
   show: TMDBShow
   onClose: () => void
   onSaved: () => void
+  existingLog?: ExistingLog
 }
 
 type Level = 'show' | 'season' | 'episode'
 type Status = 'watched' | 'watching' | 'want_to_watch'
 
-export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
+export default function LogModal({ show, onClose, onSaved, existingLog }: LogModalProps) {
   const [level, setLevel] = useState<Level>('show')
-  const [status, setStatus] = useState<Status>('watched')
+  const [status, setStatus] = useState<Status>((existingLog?.status as Status) ?? 'watched')
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null)
   const [selectedEpisode, setSelectedEpisode] = useState<number | null>(null)
   const [seasons, setSeasons] = useState<TMDBSeason[]>([])
   const [episodes, setEpisodes] = useState<TMDBEpisode[]>([])
-  const [story, setStory] = useState<number | null>(null)
-  const [performance, setPerformance] = useState<number | null>(null)
-  const [visuals, setVisuals] = useState<number | null>(null)
-  const [review, setReview] = useState('')
-  const [dateWatched, setDateWatched] = useState('')
+  const [story, setStory] = useState<number | null>(existingLog?.story_score ?? null)
+  const [performance, setPerformance] = useState<number | null>(existingLog?.performance_score ?? null)
+  const [visuals, setVisuals] = useState<number | null>(existingLog?.visuals_score ?? null)
+  const [review, setReview] = useState(existingLog?.review ?? '')
+  const [dateWatched, setDateWatched] = useState(existingLog?.date_watched ?? '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
+    if (existingLog) return // Edit mode: don't need season/episode data
     fetch(`/api/tmdb/show/${show.id}`)
       .then(r => r.json())
       .then(data => {
@@ -84,7 +96,21 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
 
     let err = null
 
-    if (level === 'show') {
+    // Edit mode: update by ID
+    if (existingLog) {
+      const { error: e } = await supabase
+        .from('show_logs')
+        .update({
+          story_score: story,
+          performance_score: performance,
+          visuals_score: visuals,
+          review: review || null,
+          date_watched: dateWatched || null,
+          status,
+        })
+        .eq('id', existingLog.id)
+      err = e
+    } else if (level === 'show') {
       const { error: e } = await supabase
         .from('show_logs')
         .upsert({ ...baseData, status }, { onConflict: 'user_id,tmdb_show_id' })
@@ -135,7 +161,10 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
       <div className="bg-[#fafaf7] w-full sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto border border-[#e0dbd4]">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#e0dbd4]">
-          <h2 className="text-[#1a1a18] font-semibold text-base truncate pr-4">{show.name}</h2>
+          <div className="truncate pr-4">
+            {existingLog && <p className="text-[10px] font-semibold uppercase tracking-widest text-[#7c9e7a] mb-0.5">Editing log</p>}
+            <h2 className="text-[#1a1a18] font-semibold text-base truncate">{show.name}</h2>
+          </div>
           <button
             onClick={onClose}
             className="text-[#6b6560] hover:text-[#1a1a18] transition-colors flex-shrink-0"
@@ -148,8 +177,8 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
         </div>
 
         <div className="px-5 py-5 space-y-5">
-          {/* Log as toggle */}
-          <div>
+          {/* Log as toggle — hidden in edit mode */}
+          {!existingLog && <div>
             <p className="text-[#6b6560] text-xs uppercase tracking-wide mb-2">Log as</p>
             <div className="flex gap-0 border border-[#e0dbd4]">
               {(['show', 'season', 'episode'] as Level[]).map((l, i) => (
@@ -168,10 +197,10 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
                 </button>
               ))}
             </div>
-          </div>
+          </div>}
 
-          {/* Status selector (show level only) */}
-          {level === 'show' && (
+          {/* Status selector (show level only, or always in edit mode) */}
+          {(level === 'show' || existingLog) && (
             <div>
               <p className="text-[#6b6560] text-xs uppercase tracking-wide mb-2">Status</p>
               <div className="flex gap-0 border border-[#e0dbd4]">
@@ -198,8 +227,8 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
             </div>
           )}
 
-          {/* Season picker */}
-          {(level === 'season' || level === 'episode') && (
+          {/* Season picker — hidden in edit mode */}
+          {!existingLog && (level === 'season' || level === 'episode') && (
             <div>
               <label className="text-[#6b6560] text-xs uppercase tracking-wide block mb-2">Season</label>
               <select
@@ -220,8 +249,8 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
             </div>
           )}
 
-          {/* Episode picker */}
-          {level === 'episode' && selectedSeason !== null && (
+          {/* Episode picker — hidden in edit mode */}
+          {!existingLog && level === 'episode' && selectedSeason !== null && (
             <div>
               <label className="text-[#6b6560] text-xs uppercase tracking-wide block mb-2">Episode</label>
               <select
@@ -288,9 +317,9 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-[#7c9e7a] hover:bg-[#6a8c68] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 transition-colors"
+            className="w-full bg-[#7c9e7a] hover:bg-[#6a8c68] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 transition-all cursor-pointer"
           >
-            {saving ? 'saving…' : 'save log'}
+            {saving ? 'saving…' : existingLog ? 'save changes' : 'save log'}
           </button>
         </div>
       </div>

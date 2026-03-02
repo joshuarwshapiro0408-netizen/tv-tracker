@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import { tmdbImageUrl } from '@/lib/tmdb'
+import { tmdbImageUrl, getShow } from '@/lib/tmdb'
 import Link from 'next/link'
 import ProfileTabs from './ProfileTabs'
 
@@ -21,7 +21,7 @@ export default async function ProfilePage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, username, bio, avatar_url, favourite_genres')
+    .select('id, username, bio, avatar_url, favourite_genres, favourite_show_ids')
     .eq('username', username)
     .single()
 
@@ -55,7 +55,7 @@ export default async function ProfilePage({
   ] = await Promise.all([
     supabase
       .from('show_logs')
-      .select('tmdb_show_id, show_title, show_poster_path, overall_score, created_at')
+      .select('id, user_id, tmdb_show_id, show_title, show_poster_path, overall_score, story_score, performance_score, visuals_score, review, date_watched, status, created_at')
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false })
       .limit(48),
@@ -74,6 +74,12 @@ export default async function ProfilePage({
   ])
 
   const favouriteGenres: string[] = (profile as { favourite_genres?: string[] }).favourite_genres ?? []
+  const favouriteShowIds: number[] = (profile as { favourite_show_ids?: number[] }).favourite_show_ids ?? []
+
+  // Fetch TMDB data for favourite shows
+  const favouriteShows = await Promise.all(
+    favouriteShowIds.slice(0, 3).map(id => getShow(id).catch(() => null))
+  )
 
   return (
     <div className="space-y-8">
@@ -160,11 +166,55 @@ export default async function ProfilePage({
         </div>
       </div>
 
+      {/* Favourite Shows */}
+      {(favouriteShows.some(s => s !== null) || isOwnProfile) && (
+        <div className="pb-6 border-b border-[#e0dbd4]">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-[#6b6560]">Favourite Shows</h2>
+            {isOwnProfile && (
+              <Link href="/profile/edit" className="text-[10px] text-[#7c9e7a] hover:underline">
+                edit
+              </Link>
+            )}
+          </div>
+          <div className="flex gap-3">
+            {[0, 1, 2].map(i => {
+              const show = favouriteShows[i]
+              if (show) {
+                const posterUrl = tmdbImageUrl(show.poster_path, 'w185')
+                return (
+                  <Link key={show.id} href={`/shows/${show.id}`} className="group w-[88px] flex-shrink-0">
+                    <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-all duration-200 group-hover:scale-[1.02]">
+                      {posterUrl
+                        ? <img src={posterUrl} alt={show.name} loading="lazy" className="w-full h-full object-cover" />
+                        : <div className="flex h-full items-center justify-center text-xs text-[#6b6560] text-center p-1">{show.name}</div>}
+                    </div>
+                    <p className="mt-1 text-[10px] text-[#6b6560] text-center truncate">{show.name}</p>
+                  </Link>
+                )
+              }
+              if (isOwnProfile) {
+                return (
+                  <Link key={`empty-${i}`} href="/profile/edit" className="w-[88px] flex-shrink-0 group">
+                    <div className="aspect-[2/3] border border-dashed border-[#e0dbd4] bg-[#f5f2ed] flex items-center justify-center group-hover:border-[#7c9e7a] transition-colors">
+                      <span className="text-2xl text-[#e0dbd4] group-hover:text-[#7c9e7a] transition-colors">+</span>
+                    </div>
+                    <p className="mt-1 text-[10px] text-[#6b6560] text-center">add</p>
+                  </Link>
+                )
+              }
+              return null
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <ProfileTabs
         loggedShows={loggedShows || []}
         reviews={reviews || []}
         lists={lists || []}
+        currentUserId={user?.id ?? undefined}
       />
     </div>
   )

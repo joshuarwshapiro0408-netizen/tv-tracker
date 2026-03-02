@@ -23,10 +23,15 @@ export default function EditProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [favouriteShows, setFavouriteShows] = useState<{ id: number; name: string; poster_path: string | null }[]>([])
+  const [showSearch, setShowSearch] = useState('')
+  const [showResults, setShowResults] = useState<{ id: number; name: string; poster_path: string | null }[]>([])
+  const [showSearching, setShowSearching] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [loaded, setLoaded] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const showDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -34,7 +39,7 @@ export default function EditProfilePage() {
       if (!user) { router.push('/login'); return }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('username, bio, avatar_url, favourite_genres')
+        .select('username, bio, avatar_url, favourite_genres, favourite_show_ids')
         .eq('id', user.id)
         .single()
       if (profile) {
@@ -43,6 +48,19 @@ export default function EditProfilePage() {
         setBio(profile.bio || '')
         setAvatarUrl(profile.avatar_url || null)
         setGenres((profile as { favourite_genres?: string[] }).favourite_genres || [])
+        const ids: number[] = (profile as { favourite_show_ids?: number[] }).favourite_show_ids || []
+        if (ids.length > 0) {
+          const shows = await Promise.all(
+            ids.slice(0, 3).map(async id => {
+              try {
+                const r = await fetch(`/api/tmdb/show/${id}`)
+                const data = await r.json()
+                return { id: data.id, name: data.name, poster_path: data.poster_path || null }
+              } catch { return null }
+            })
+          )
+          setFavouriteShows(shows.filter(Boolean) as { id: number; name: string; poster_path: string | null }[])
+        }
       }
       setLoaded(true)
     }
@@ -82,6 +100,35 @@ export default function EditProfilePage() {
     setGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])
   }
 
+  function handleShowSearch(value: string) {
+    setShowSearch(value)
+    if (!value.trim()) { setShowResults([]); return }
+    setShowSearching(true)
+    if (showDebounceRef.current) clearTimeout(showDebounceRef.current)
+    showDebounceRef.current = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/tmdb/search?q=${encodeURIComponent(value)}`)
+        const data = await r.json()
+        setShowResults((data.results || []).slice(0, 5).map((s: { id: number; name: string; poster_path: string | null }) => ({
+          id: s.id, name: s.name, poster_path: s.poster_path || null
+        })))
+      } catch { setShowResults([]) }
+      setShowSearching(false)
+    }, 400)
+  }
+
+  function addFavouriteShow(show: { id: number; name: string; poster_path: string | null }) {
+    if (favouriteShows.length >= 3) return
+    if (favouriteShows.find(s => s.id === show.id)) return
+    setFavouriteShows(prev => [...prev, show])
+    setShowSearch('')
+    setShowResults([])
+  }
+
+  function removeFavouriteShow(id: number) {
+    setFavouriteShows(prev => prev.filter(s => s.id !== id))
+  }
+
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -119,6 +166,7 @@ export default function EditProfilePage() {
       bio: bio.trim() || null,
       avatar_url: newAvatarUrl,
       favourite_genres: genres,
+      favourite_show_ids: favouriteShows.map(s => s.id),
     }
 
     if (username !== originalUsername) {
@@ -211,6 +259,87 @@ export default function EditProfilePage() {
           className="w-full border border-[#e0dbd4] bg-[#fafaf7] px-3 py-2 text-sm text-[#1a1a18] placeholder-[#6b6560] focus:outline-none focus:border-[#7c9e7a] resize-none"
         />
         <p className="text-[11px] text-[#6b6560] text-right mt-0.5">{bio.length}/160</p>
+      </div>
+
+      {/* Favourite Shows */}
+      <div>
+        <label className="block text-xs uppercase tracking-wide text-[#6b6560] mb-3">
+          Favourite Shows <span className="normal-case font-normal">(up to 3)</span>
+        </label>
+
+        {/* Selected shows */}
+        {favouriteShows.length > 0 && (
+          <div className="flex gap-3 mb-4">
+            {favouriteShows.map(show => (
+              <div key={show.id} className="relative w-[72px] flex-shrink-0 group">
+                <div className="aspect-[2/3] bg-[#f0ede8] border border-[#e0dbd4] overflow-hidden">
+                  {show.poster_path ? (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w185${show.poster_path}`}
+                      alt={show.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-[9px] text-[#6b6560] text-center p-1 leading-tight">
+                      {show.name}
+                    </div>
+                  )}
+                </div>
+                <p className="mt-1 text-[9px] text-[#6b6560] text-center truncate leading-tight">{show.name}</p>
+                <button
+                  type="button"
+                  onClick={() => removeFavouriteShow(show.id)}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#1a1a18] text-white text-[10px] flex items-center justify-center leading-none hover:bg-red-600 transition-colors cursor-pointer"
+                  aria-label={`Remove ${show.name}`}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Search input */}
+        {favouriteShows.length < 3 && (
+          <div className="relative">
+            <input
+              type="text"
+              value={showSearch}
+              onChange={e => handleShowSearch(e.target.value)}
+              placeholder="Search for a show…"
+              className="w-full border border-[#e0dbd4] bg-[#fafaf7] px-3 py-2 text-sm text-[#1a1a18] placeholder-[#6b6560] focus:outline-none focus:border-[#7c9e7a] transition-colors"
+            />
+            {showSearching && (
+              <p className="text-[11px] text-[#6b6560] mt-1">searching…</p>
+            )}
+            {showResults.length > 0 && (
+              <div className="absolute z-10 top-full left-0 right-0 border border-[#e0dbd4] bg-[#fafaf7] shadow-sm mt-0.5 max-h-60 overflow-y-auto">
+                {showResults.map(show => (
+                  <button
+                    key={show.id}
+                    type="button"
+                    onClick={() => addFavouriteShow(show)}
+                    className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#f0ede8] transition-colors text-left cursor-pointer border-b border-[#e0dbd4] last:border-b-0"
+                  >
+                    <div className="w-7 h-10 flex-shrink-0 bg-[#e8e3dc] overflow-hidden">
+                      {show.poster_path ? (
+                        <img
+                          src={`https://image.tmdb.org/t/p/w92${show.poster_path}`}
+                          alt={show.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : null}
+                    </div>
+                    <span className="text-sm text-[#1a1a18] truncate">{show.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {favouriteShows.length >= 3 && (
+          <p className="text-[11px] text-[#6b6560]">3 shows selected · remove one to add another</p>
+        )}
       </div>
 
       {/* Favourite genres */}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import AppComingSoonPopup from '@/components/AppComingSoonPopup'
 
 type Poster = { id: number; poster: string | null; name: string }
 type ModalType = 'login' | 'signup' | null
@@ -149,6 +150,8 @@ export default function LandingPage({
           </div>
         </div>
       )}
+
+      <AppComingSoonPopup />
     </div>
   )
 }
@@ -240,7 +243,7 @@ function SignupForm({
       options: { data: { username } },
     })
     if (error) { setError(error.message); setLoading(false); return }
-    router.push('/home')
+    router.push('/onboarding')
     router.refresh()
   }
 
