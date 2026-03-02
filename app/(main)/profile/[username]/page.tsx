@@ -30,18 +30,17 @@ export default async function ProfilePage({
     { count: followingCount },
     { data: isFollowing },
   ] = await Promise.all([
-    supabase.from('show_logs').select('*', { count: 'exact', head: true }).eq('user_id', profile.id).eq('status', 'watched'),
+    supabase.from('show_logs').select('*', { count: 'exact', head: true }).eq('user_id', profile.id),
     supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', profile.id),
     supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', profile.id),
     user ? supabase.from('follows').select('*').eq('follower_id', user.id).eq('following_id', profile.id) : Promise.resolve({ data: [] }),
   ])
 
-  // Get recent watched shows
+  // Get recent logged shows
   const { data: watchedShows } = await supabase
     .from('show_logs')
     .select('*')
     .eq('user_id', profile.id)
-    .eq('status', 'watched')
     .order('created_at', { ascending: false })
     .limit(12)
 
@@ -56,7 +55,7 @@ export default async function ProfilePage({
           <h1 className="text-2xl font-bold text-white">{profile.username}</h1>
           {profile.bio && <p className="text-gray-400 mt-1">{profile.bio}</p>}
           <div className="flex gap-5 mt-3 text-sm text-gray-400">
-            <span><span className="text-white font-semibold">{watchedCount || 0}</span> watched</span>
+            <span><span className="text-white font-semibold">{watchedCount || 0}</span> logged</span>
             <span><span className="text-white font-semibold">{followerCount || 0}</span> followers</span>
             <span><span className="text-white font-semibold">{followingCount || 0}</span> following</span>
           </div>
@@ -80,7 +79,7 @@ export default async function ProfilePage({
       </div>
 
       {/* Watched shows grid */}
-      <h2 className="text-white font-semibold mb-4">Recently Watched</h2>
+      <h2 className="text-white font-semibold mb-4">Recently Logged</h2>
       {watchedShows && watchedShows.length > 0 ? (
         <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
           {watchedShows.map(log => {
