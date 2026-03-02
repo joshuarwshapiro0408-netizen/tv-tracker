@@ -63,7 +63,7 @@ export default function Nav() {
             <>
               <Link
                 href="/login"
-                className={`text-[10px] font-semibold tracking-widest transition-colors pb-0.5 ${
+                className={`text-xs font-bold tracking-widest transition-colors pb-0.5 ${
                   pathname === '/login'
                     ? 'text-[#1a1a18] border-b border-[#7c9e7a]'
                     : 'text-[#6b6560] hover:text-[#1a1a18]'
@@ -73,7 +73,7 @@ export default function Nav() {
               </Link>
               <Link
                 href="/login?form=signup"
-                className="text-[10px] font-semibold tracking-widest text-[#6b6560] hover:text-[#1a1a18] transition-colors"
+                className="text-xs font-bold tracking-widest text-[#6b6560] hover:text-[#1a1a18] transition-colors"
               >
                 CREATE ACCOUNT
               </Link>
@@ -83,7 +83,7 @@ export default function Nav() {
             <Link
               key={link.href}
               href={link.href}
-              className={`text-[10px] font-semibold tracking-widest transition-colors pb-0.5 ${
+              className={`text-xs font-bold tracking-widest transition-colors pb-0.5 ${
                 isActive(link.href)
                   ? 'text-[#1a1a18] border-b border-[#7c9e7a]'
                   : 'text-[#6b6560] hover:text-[#1a1a18]'
@@ -95,7 +95,7 @@ export default function Nav() {
           {username && (
             <Link
               href="/feed"
-              className={`text-[10px] font-semibold tracking-widest transition-colors pb-0.5 ${
+              className={`text-xs font-bold tracking-widest transition-colors pb-0.5 ${
                 isActive('/feed')
                   ? 'text-[#1a1a18] border-b border-[#7c9e7a]'
                   : 'text-[#6b6560] hover:text-[#1a1a18]'
@@ -123,13 +123,13 @@ export default function Nav() {
                     username[0]?.toUpperCase()
                   )}
                 </div>
-                <span className="text-[10px] font-semibold tracking-widest text-[#6b6560] group-hover:text-[#1a1a18] transition-colors uppercase">
+                <span className="text-xs font-bold tracking-widest text-[#6b6560] group-hover:text-[#1a1a18] transition-colors uppercase">
                   {username}
                 </span>
               </Link>
               <button
                 onClick={signOut}
-                className="text-[10px] font-semibold tracking-widest text-[#6b6560] hover:text-[#1a1a18] transition-colors"
+                className="text-xs font-bold tracking-widest text-[#6b6560] hover:text-[#1a1a18] transition-colors"
               >
                 SIGN OUT
               </button>
