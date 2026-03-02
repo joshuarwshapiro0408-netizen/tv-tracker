@@ -53,3 +53,9 @@ export async function getSimilarShows(showId: number) {
 export async function getShowExternalIds(showId: number) {
   return tmdbFetch(`/tv/${showId}/external_ids`)
 }
+
+export async function getShowsByNetwork(networkId: number) {
+  return tmdbFetch(
+    `/discover/tv?with_networks=${networkId}&sort_by=popularity.desc&language=en-US&page=1`
+  )
+}
