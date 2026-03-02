@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { tmdbImageUrl, getTrendingShows, getTopRatedShows } from '@/lib/tmdb'
+import { tmdbImageUrl, getTrendingShows } from '@/lib/tmdb'
 import Link from 'next/link'
+
+export const dynamic = 'force-dynamic'
 
 export default async function FeedPage() {
   const supabase = await createClient()
@@ -19,133 +21,119 @@ export default async function FeedPage() {
     .from('show_logs')
     .select('*, profiles(username, avatar_url)')
     .order('created_at', { ascending: false })
-    .limit(30)
+    .limit(40)
 
   if (followingIds.length > 0) {
     logsQuery.in('user_id', followingIds)
   }
 
-  const [logsResult, trending, topRated] = await Promise.all([
+  const [logsResult, trending] = await Promise.all([
     logsQuery,
-    getTrendingShows(),
-    getTopRatedShows(),
+    getTrendingShows().catch(() => null),
   ])
 
-  const logs = logsResult.data
-  const trendingShows: { id: number; name: string; poster_path: string | null }[] = trending?.results?.slice(0, 12) || []
-  const topRatedShows: { id: number; name: string; poster_path: string | null }[] = topRated?.results?.slice(0, 12) || []
+  const logs = logsResult.data || []
+  const trendingShows: { id: number; name: string; poster_path: string | null }[] =
+    trending?.results?.slice(0, 12) || []
 
   return (
-    <div className="max-w-2xl mx-auto space-y-10">
-
-      {/* Activity feed */}
-      <section>
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6b6560] mb-4">
-          {followingIds.length > 0 ? 'Friends Activity' : 'Community Activity'}
-        </h2>
-
+    <div className="space-y-10">
+      {/* Header */}
+      <div className="border-b border-[#e0dbd4] pb-6">
+        <p className="text-xs font-semibold uppercase tracking-widest text-[#6b6560] mb-1">
+          {followingIds.length > 0 ? 'following' : 'community'}
+        </p>
+        <h1 className="text-3xl font-bold text-[#1a1a18]">Journal</h1>
         {followingIds.length === 0 && (
-          <p className="text-sm text-[#6b6560] border border-[#e0dbd4] bg-[#f0ede8] px-4 py-3 mb-4">
-            Follow people to see their activity here. Showing all community activity for now.
+          <p className="text-sm text-[#6b6560] mt-2 leading-relaxed">
+            Follow people to see their activity here. Showing community activity for now.
           </p>
         )}
+      </div>
 
-        {(!logs || logs.length === 0) && (
-          <p className="text-sm text-[#6b6560]">No activity yet. Search for shows and start logging!</p>
-        )}
-
-        <div className="divide-y divide-[#e0dbd4] border-t border-b border-[#e0dbd4]">
-          {logs?.map(log => {
-            const posterUrl = tmdbImageUrl(log.show_poster_path, 'w92')
-            return (
-              <div key={log.id} className="flex gap-4 py-4">
-                <Link href={`/shows/${log.tmdb_show_id}`} className="flex-shrink-0">
-                  <div className="w-10 h-[60px] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] rounded-sm">
-                    {posterUrl ? (
-                      <img src={posterUrl} alt={log.show_title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-[#e0dbd4]" />
-                    )}
-                  </div>
-                </Link>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap text-sm">
-                    <Link href={`/profile/${log.profiles?.username}`} className="text-[#1a1a18] font-semibold hover:text-[#7c9e7a] transition-colors">
-                      {log.profiles?.username}
+      {/* Diary-style entries */}
+      <section>
+        {logs.length === 0 ? (
+          <p className="text-sm text-[#6b6560] py-6">No activity yet. Log some shows to get started.</p>
+        ) : (
+          <div className="space-y-0">
+            {logs.map((log, i) => {
+              const date = new Date(log.created_at)
+              const prevLog = i > 0 ? logs[i - 1] : null
+              const showDateHeader = !prevLog || date.toDateString() !== new Date(prevLog.created_at).toDateString()
+              const posterUrl = tmdbImageUrl(log.show_poster_path, 'w92')
+              return (
+                <div key={log.id}>
+                  {showDateHeader && (
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-[#6b6560] pt-6 pb-2 border-t border-[#e0dbd4] first:border-t-0 first:pt-0">
+                      {date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                    </p>
+                  )}
+                  <div className="flex gap-3 py-2.5 border-b border-[#e0dbd4]/60 last:border-b-0">
+                    <Link href={`/shows/${log.tmdb_show_id}`} className="flex-shrink-0">
+                      <div className="w-10 h-14 overflow-hidden bg-[#f0ede8] border border-[#e0dbd4]">
+                        {posterUrl
+                          ? <img src={posterUrl} alt={log.show_title} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full bg-[#e0dbd4]" />}
+                      </div>
                     </Link>
-                    <span className="text-[#6b6560]">
-                      {log.status === 'watched' ? 'watched' : log.status === 'watching' ? 'is watching' : 'wants to watch'}
-                    </span>
-                    <Link href={`/shows/${log.tmdb_show_id}`} className="text-[#1a1a18] font-semibold hover:text-[#7c9e7a] transition-colors">
-                      {log.show_title}
-                    </Link>
-                  </div>
-
-                  {log.overall_score && (
-                    <div className="flex gap-3 mt-1 text-xs text-[#6b6560]">
-                      <span>Overall <span className="text-[#1a1a18] font-semibold">{log.overall_score.toFixed(1)}</span></span>
-                      {log.story_score && <span>Story <span className="text-[#1a1a18]">{log.story_score.toFixed(1)}</span></span>}
-                      {log.performance_score && <span>Perf. <span className="text-[#1a1a18]">{log.performance_score.toFixed(1)}</span></span>}
-                      {log.visuals_score && <span>Visuals <span className="text-[#1a1a18]">{log.visuals_score.toFixed(1)}</span></span>}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap text-xs text-[#6b6560] mb-0.5">
+                            <Link href={`/profile/${log.profiles?.username}`} className="font-semibold text-[#1a1a18] hover:text-[#7c9e7a] transition-colors">
+                              {log.profiles?.username}
+                            </Link>
+                            <span>
+                              {log.status === 'watched' ? 'watched' : log.status === 'watching' ? 'is watching' : 'wants to watch'}
+                            </span>
+                          </div>
+                          <Link href={`/shows/${log.tmdb_show_id}`} className="text-sm font-semibold text-[#1a1a18] hover:text-[#7c9e7a] transition-colors truncate block">
+                            {log.show_title}
+                          </Link>
+                        </div>
+                        {log.overall_score && (
+                          <span className="text-sm font-bold text-[#7c9e7a] flex-shrink-0 tabular-nums">
+                            {log.overall_score.toFixed(1)}
+                          </span>
+                        )}
+                      </div>
+                      {log.story_score && (
+                        <div className="flex gap-3 text-xs text-[#6b6560] mt-0.5">
+                          <span>Story <span className="text-[#1a1a18] font-semibold">{log.story_score.toFixed(1)}</span></span>
+                          {log.performance_score && <span>Perf. <span className="text-[#1a1a18] font-semibold">{log.performance_score.toFixed(1)}</span></span>}
+                          {log.visuals_score && <span>Visuals <span className="text-[#1a1a18] font-semibold">{log.visuals_score.toFixed(1)}</span></span>}
+                        </div>
+                      )}
+                      {log.review && (
+                        <p className="text-xs text-[#6b6560] italic mt-0.5 line-clamp-2">&ldquo;{log.review}&rdquo;</p>
+                      )}
                     </div>
-                  )}
-
-                  {log.review && (
-                    <p className="text-[#6b6560] text-sm mt-1.5 line-clamp-2 italic">&ldquo;{log.review}&rdquo;</p>
-                  )}
-
-                  <p className="text-[#6b6560] text-xs mt-1">
-                    {new Date(log.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </p>
+                  </div>
                 </div>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
       </section>
 
-      {/* Trending on TMDB */}
+      {/* Popular this week */}
       {trendingShows.length > 0 && (
         <section>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6b6560] mb-4">Trending This Week</h2>
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="border-t border-[#e0dbd4] pt-8 mb-5">
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6b6560]">Popular This Week</h2>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
             {trendingShows.map(show => {
               const posterUrl = tmdbImageUrl(show.poster_path, 'w342')
               return (
                 <Link key={show.id} href={`/shows/${show.id}`} className="group">
-                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] rounded-sm group-hover:border-[#7c9e7a] transition-colors">
-                    {posterUrl ? (
-                      <img src={posterUrl} alt={show.name} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[#6b6560] text-xs text-center p-2">{show.name}</div>
-                    )}
+                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
+                    {posterUrl
+                      ? <img src={posterUrl} alt={show.name} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
+                      : <div className="flex h-full w-full items-center justify-center text-xs text-[#6b6560] text-center p-2">{show.name}</div>}
                   </div>
-                  <p className="text-[#1a1a18] text-xs font-medium mt-1.5 truncate">{show.name}</p>
-                </Link>
-              )
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Top Rated on TMDB */}
-      {topRatedShows.length > 0 && (
-        <section>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6b6560] mb-4">Top Rated</h2>
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {topRatedShows.map(show => {
-              const posterUrl = tmdbImageUrl(show.poster_path, 'w185')
-              return (
-                <Link key={show.id} href={`/shows/${show.id}`} className="w-24 flex-shrink-0 group">
-                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] rounded-sm group-hover:border-[#7c9e7a] transition-colors">
-                    {posterUrl ? (
-                      <img src={posterUrl} alt={show.name} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[#6b6560] text-xs text-center p-2">{show.name}</div>
-                    )}
-                  </div>
-                  <p className="text-[#1a1a18] text-xs font-medium mt-1.5 truncate">{show.name}</p>
+                  <p className="mt-1.5 text-[11px] font-semibold text-[#1a1a18] truncate">{show.name}</p>
                 </Link>
               )
             })}

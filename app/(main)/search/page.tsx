@@ -164,7 +164,7 @@ function SearchInner() {
               className="flex items-center justify-between py-3 px-1 hover:bg-[#f0ede8] transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-[#f0ede8] border border-[#e0dbd4] overflow-hidden flex items-center justify-center text-sm font-bold text-[#6b6560] flex-shrink-0">
+                <div className="w-9 h-9 rounded-full bg-[#f0ede8] border border-[#e0dbd4] overflow-hidden flex items-center justify-center text-sm font-bold text-[#6b6560] flex-shrink-0">
                   {profile.avatar_url ? (
                     <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
                   ) : (
@@ -191,7 +191,7 @@ function ShowPosterCard({ show }: { show: TMDBShow }) {
 
   return (
     <Link href={`/shows/${show.id}`} className="group block">
-      <div className="aspect-[2/3] w-full overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] rounded-sm group-hover:border-[#7c9e7a] transition-colors">
+      <div className="aspect-[2/3] w-full overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
         {imageUrl ? (
           <img
             src={imageUrl}

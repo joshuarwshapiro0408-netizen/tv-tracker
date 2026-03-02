@@ -78,7 +78,7 @@ export default async function HomePage() {
               const posterUrl = tmdbImageUrl(log.show_poster_path, 'w185')
               return (
                 <Link key={log.id} href={`/shows/${log.tmdb_show_id}`} className="w-24 flex-shrink-0 group">
-                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] rounded-sm group-hover:border-[#7c9e7a] transition-colors">
+                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
                     {posterUrl ? (
                       <img src={posterUrl} alt={log.show_title} className="h-full w-full object-cover" />
                     ) : (
@@ -109,7 +109,7 @@ export default async function HomePage() {
               const posterUrl = tmdbImageUrl(show.poster, 'w185')
               return (
                 <Link key={show.id} href={`/shows/${show.id}`} className="group">
-                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] rounded-sm group-hover:border-[#7c9e7a] transition-colors">
+                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
                     {posterUrl ? (
                       <img src={posterUrl} alt={show.title} className="h-full w-full object-cover group-hover:opacity-90 transition-opacity" />
                     ) : (

@@ -9,19 +9,13 @@ const assistant = Assistant({
 
 export const metadata: Metadata = {
   title: 'trakr',
-  description: 'Track and discover TV shows with friends',
+  description: 'The social network for TV lovers',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body
-        className={`${assistant.className} min-h-screen bg-[#fafaf7] text-[#1a1a18] antialiased`}
-      >
+      <body className={`${assistant.className} min-h-screen bg-[#fafaf7] text-[#1a1a18] antialiased`}>
         {children}
       </body>
     </html>

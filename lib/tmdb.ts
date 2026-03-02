@@ -12,7 +12,7 @@ async function tmdbFetch(endpoint: string) {
       Authorization: `Bearer ${process.env.TMDB_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    next: { revalidate: 3600 }, // cache for 1 hour
+    next: { revalidate: 3600 },
   })
 
   if (!res.ok) {
@@ -44,4 +44,12 @@ export async function getTopRatedShows() {
 
 export async function getPopularShows() {
   return tmdbFetch('/tv/popular?language=en-US')
+}
+
+export async function getSimilarShows(showId: number) {
+  return tmdbFetch(`/tv/${showId}/recommendations?language=en-US`)
+}
+
+export async function getShowExternalIds(showId: number) {
+  return tmdbFetch(`/tv/${showId}/external_ids`)
 }

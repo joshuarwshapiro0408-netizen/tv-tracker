@@ -1,9 +1,12 @@
 -- Run this in the Supabase SQL Editor before using profile edit features.
 -- Dashboard → SQL Editor → New query → paste → Run
 
--- 1. Add favourite_genres column to profiles
+-- 1. Add columns to profiles
 ALTER TABLE profiles
   ADD COLUMN IF NOT EXISTS favourite_genres text[] DEFAULT '{}';
+
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS display_name text;
 
 -- 2. Create public avatars storage bucket
 INSERT INTO storage.buckets (id, name, public)

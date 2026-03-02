@@ -117,7 +117,7 @@ export default function EditProfilePage() {
       <div>
         <label className="block text-xs uppercase tracking-wide text-[#6b6560] mb-3">Profile Photo</label>
         <div className="flex items-center gap-5">
-          <div className="w-16 h-16 bg-[#f0ede8] border border-[#e0dbd4] overflow-hidden flex items-center justify-center text-2xl font-bold text-[#6b6560] flex-shrink-0">
+          <div className="w-16 h-16 rounded-full bg-[#f0ede8] border border-[#e0dbd4] overflow-hidden flex items-center justify-center text-2xl font-bold text-[#6b6560] flex-shrink-0">
             {displayAvatar ? (
               <img src={displayAvatar} alt="avatar" className="w-full h-full object-cover" />
             ) : (

@@ -45,7 +45,7 @@ export default async function ListPage({
               className="flex items-center gap-4 py-3 hover:bg-[#f0ede8] transition-colors px-1"
             >
               <span className="text-[#6b6560] font-bold w-6 text-right flex-shrink-0 text-sm">{index + 1}</span>
-              <div className="w-10 h-14 overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] rounded-sm flex-shrink-0">
+              <div className="w-10 h-14 overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] flex-shrink-0">
                 {posterUrl ? (
                   <img src={posterUrl} alt={item.show_title} className="w-full h-full object-cover" />
                 ) : (
