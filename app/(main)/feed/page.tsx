@@ -54,7 +54,22 @@ export default async function FeedPage() {
       {/* Diary-style entries */}
       <section>
         {logs.length === 0 ? (
-          <p className="text-sm text-[#6b6560] py-6">No activity yet. Log some shows to get started.</p>
+          <div className="py-10 border border-dashed border-[#e0dbd4] text-center bg-[#fafaf7]">
+            <p className="text-sm font-semibold text-[#1a1a18] mb-1">Your journal is quiet</p>
+            <p className="text-xs text-[#6b6560] mb-4 leading-relaxed">
+              {followingIds.length === 0
+                ? 'Follow people to see their logs here, or start logging yourself.'
+                : "The people you follow haven't logged anything yet."}
+            </p>
+            <div className="flex justify-center gap-6">
+              <Link href="/shows" className="text-xs font-semibold text-[#7c9e7a] hover:underline uppercase tracking-wide">
+                Browse Shows →
+              </Link>
+              <Link href="/members" className="text-xs font-semibold text-[#7c9e7a] hover:underline uppercase tracking-wide">
+                Find People →
+              </Link>
+            </div>
+          </div>
         ) : (
           <div className="space-y-0">
             {logs.map((log, i) => {

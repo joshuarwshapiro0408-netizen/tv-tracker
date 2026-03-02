@@ -81,7 +81,13 @@ export default function ProfileTabs({ loggedShows, reviews, lists }: Props) {
       {tab === 'shows' && (
         <div>
           {loggedShows.length === 0 ? (
-            <p className="text-sm text-[#6b6560] py-6">No shows logged yet.</p>
+            <div className="py-10 text-center border border-dashed border-[#e0dbd4] bg-[#fafaf7]">
+              <p className="text-sm font-semibold text-[#1a1a18] mb-1">Nothing logged yet</p>
+              <p className="text-xs text-[#6b6560] mb-4">Start building your watchlist.</p>
+              <Link href="/shows" className="text-xs font-semibold text-[#7c9e7a] hover:underline uppercase tracking-wide">
+                Browse Shows →
+              </Link>
+            </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
               {loggedShows.map(log => {
@@ -108,7 +114,13 @@ export default function ProfileTabs({ loggedShows, reviews, lists }: Props) {
       {tab === 'reviews' && (
         <div>
           {reviews.length === 0 ? (
-            <p className="text-sm text-[#6b6560] py-6">No reviews written yet.</p>
+            <div className="py-10 text-center border border-dashed border-[#e0dbd4] bg-[#fafaf7]">
+              <p className="text-sm font-semibold text-[#1a1a18] mb-1">No reviews yet</p>
+              <p className="text-xs text-[#6b6560] mb-4">Log a show and share your thoughts.</p>
+              <Link href="/shows" className="text-xs font-semibold text-[#7c9e7a] hover:underline uppercase tracking-wide">
+                Find a Show →
+              </Link>
+            </div>
           ) : (
             <div className="space-y-4">
               {reviews.map(log => {
@@ -198,7 +210,13 @@ export default function ProfileTabs({ loggedShows, reviews, lists }: Props) {
       {tab === 'journal' && (
         <div>
           {loggedShows.length === 0 ? (
-            <p className="text-sm text-[#6b6560] py-6">Nothing in the journal yet.</p>
+            <div className="py-10 text-center border border-dashed border-[#e0dbd4] bg-[#fafaf7]">
+              <p className="text-sm font-semibold text-[#1a1a18] mb-1">Your journal is empty</p>
+              <p className="text-xs text-[#6b6560] mb-4">Every show you log will appear here by date.</p>
+              <Link href="/shows" className="text-xs font-semibold text-[#7c9e7a] hover:underline uppercase tracking-wide">
+                Start Logging →
+              </Link>
+            </div>
           ) : (
             <div className="space-y-0">
               {loggedShows.map((log, i) => {

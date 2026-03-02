@@ -41,6 +41,15 @@ export default async function MembersPage() {
         <p className="text-sm text-[#6b6560] leading-relaxed">
           TV lovers, critics and friends — find people to follow.
         </p>
+        <div className="mt-5 bg-[#f0ede8] border border-[#e0dbd4] px-4 py-3 flex items-start gap-3">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#7c9e7a] mt-1.5 flex-shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-[#1a1a18]">trakr is just getting started</p>
+            <p className="text-xs text-[#6b6560] mt-0.5 leading-relaxed">
+              You&apos;re one of the first members. Invite your TV-obsessed friends and build this community together.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Member grid */}
