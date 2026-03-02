@@ -78,7 +78,6 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
       story_score: story,
       performance_score: performance,
       visuals_score: visuals,
-      overall_score: overallScore,
       review: review || null,
       date_watched: dateWatched || null,
     }
