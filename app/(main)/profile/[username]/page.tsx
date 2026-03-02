@@ -23,9 +23,8 @@ export default async function ProfilePage({
 
   const isOwnProfile = user?.id === profile.id
 
-  // Get counts
   const [
-    { count: watchedCount },
+    { count: loggedCount },
     { count: followerCount },
     { count: followingCount },
     { data: isFollowing },
@@ -36,79 +35,82 @@ export default async function ProfilePage({
     user ? supabase.from('follows').select('*').eq('follower_id', user.id).eq('following_id', profile.id) : Promise.resolve({ data: [] }),
   ])
 
-  // Get recent logged shows
-  const { data: watchedShows } = await supabase
+  const { data: loggedShows } = await supabase
     .from('show_logs')
     .select('*')
     .eq('user_id', profile.id)
     .order('created_at', { ascending: false })
-    .limit(12)
+    .limit(24)
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="space-y-8">
       {/* Profile header */}
-      <div className="flex items-start gap-5 mb-8">
-        <div className="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center text-3xl text-gray-300 flex-shrink-0">
-          {profile.username[0].toUpperCase()}
-        </div>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-white">{profile.username}</h1>
-          {profile.bio && <p className="text-gray-400 mt-1">{profile.bio}</p>}
-          <div className="flex gap-5 mt-3 text-sm text-gray-400">
-            <span><span className="text-white font-semibold">{watchedCount || 0}</span> logged</span>
-            <span><span className="text-white font-semibold">{followerCount || 0}</span> followers</span>
-            <span><span className="text-white font-semibold">{followingCount || 0}</span> following</span>
+      <div className="border-b border-[#e0dbd4] pb-6">
+        <div className="flex items-start gap-5">
+          <div className="w-16 h-16 bg-[#f0ede8] border border-[#e0dbd4] flex items-center justify-center text-2xl font-bold text-[#6b6560] flex-shrink-0">
+            {profile.username[0].toUpperCase()}
           </div>
-          {!isOwnProfile && user && (
-            <form action={`/api/follow`} method="POST" className="mt-3">
-              <input type="hidden" name="target_id" value={profile.id} />
-              <input type="hidden" name="action" value={isFollowing && isFollowing.length > 0 ? 'unfollow' : 'follow'} />
-              <button
-                type="submit"
-                className={`px-5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  isFollowing && isFollowing.length > 0
-                    ? 'bg-gray-700 text-white hover:bg-gray-600'
-                    : 'bg-blue-600 text-white hover:bg-blue-500'
-                }`}
-              >
-                {isFollowing && isFollowing.length > 0 ? 'Following' : 'Follow'}
-              </button>
-            </form>
-          )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-[#1a1a18]">{profile.username}</h1>
+            {profile.bio && <p className="text-[#6b6560] mt-1 text-sm">{profile.bio}</p>}
+            <div className="flex gap-6 mt-3 text-sm text-[#6b6560]">
+              <span><span className="text-[#1a1a18] font-bold">{loggedCount || 0}</span> logged</span>
+              <span><span className="text-[#1a1a18] font-bold">{followerCount || 0}</span> followers</span>
+              <span><span className="text-[#1a1a18] font-bold">{followingCount || 0}</span> following</span>
+            </div>
+            {!isOwnProfile && user && (
+              <form action="/api/follow" method="POST" className="mt-3">
+                <input type="hidden" name="target_id" value={profile.id} />
+                <input type="hidden" name="action" value={isFollowing && isFollowing.length > 0 ? 'unfollow' : 'follow'} />
+                <button
+                  type="submit"
+                  className={`px-5 py-1.5 text-sm font-medium transition-colors ${
+                    isFollowing && isFollowing.length > 0
+                      ? 'border border-[#e0dbd4] text-[#6b6560] hover:border-[#1a1a18] hover:text-[#1a1a18]'
+                      : 'bg-[#7c9e7a] hover:bg-[#6a8c68] text-white'
+                  }`}
+                >
+                  {isFollowing && isFollowing.length > 0 ? 'Following' : 'Follow'}
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Watched shows grid */}
-      <h2 className="text-white font-semibold mb-4">Recently Logged</h2>
-      {watchedShows && watchedShows.length > 0 ? (
-        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-          {watchedShows.map(log => {
-            const posterUrl = tmdbImageUrl(log.show_poster_path, 'w185')
-            return (
-              <Link key={log.id} href={`/shows/${log.tmdb_show_id}`} className="group">
-                <div className="aspect-[2/3] rounded-lg overflow-hidden bg-gray-800">
-                  {posterUrl ? (
-                    <img
-                      src={posterUrl}
-                      alt={log.show_title}
-                      className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs text-center p-2">
-                      {log.show_title}
-                    </div>
+      {/* Logged shows grid */}
+      <section>
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6b6560] mb-4">Recently Logged</h2>
+        {loggedShows && loggedShows.length > 0 ? (
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {loggedShows.map(log => {
+              const posterUrl = tmdbImageUrl(log.show_poster_path, 'w185')
+              return (
+                <Link key={log.id} href={`/shows/${log.tmdb_show_id}`} className="group">
+                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
+                    {posterUrl ? (
+                      <img
+                        src={posterUrl}
+                        alt={log.show_title}
+                        className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[#6b6560] text-xs text-center p-2">
+                        {log.show_title}
+                      </div>
+                    )}
+                  </div>
+                  {log.overall_score && (
+                    <p className="text-[#6b6560] text-xs text-center mt-1">{log.overall_score.toFixed(1)}</p>
                   )}
-                </div>
-                {log.overall_score && (
-                  <p className="text-gray-400 text-xs text-center mt-1">{log.overall_score.toFixed(1)}</p>
-                )}
-              </Link>
-            )
-          })}
-        </div>
-      ) : (
-        <p className="text-gray-500">No shows logged yet.</p>
-      )}
+                </Link>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-[#6b6560]">No shows logged yet.</p>
+        )}
+      </section>
     </div>
   )
 }

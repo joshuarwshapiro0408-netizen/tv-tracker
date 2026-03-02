@@ -11,7 +11,6 @@ export default async function ShowPage({
   const show = await getShow(Number(id))
   const supabase = await createClient()
 
-  // Get community rating
   const { data: communityLogs } = await supabase
     .from('show_logs')
     .select('overall_score, story_score, performance_score, visuals_score')
@@ -28,7 +27,6 @@ export default async function ShowPage({
       }
     : null
 
-  // Get recent reviews
   const { data: recentLogs } = await supabase
     .from('show_logs')
     .select('*, profiles(username, avatar_url)')
@@ -45,29 +43,29 @@ export default async function ShowPage({
       {/* Backdrop */}
       {backdropUrl && (
         <div
-          className="w-full h-48 bg-cover bg-center rounded-xl mb-6 opacity-40"
+          className="w-full h-56 md:h-72 bg-cover bg-center mb-0 -mx-4 md:mx-0"
           style={{ backgroundImage: `url(${backdropUrl})` }}
         />
       )}
 
-      <div className="flex gap-6 mb-8">
-        {/* Poster */}
+      {/* Poster + info row */}
+      <div className={`flex gap-6 mb-8 ${backdropUrl ? '-mt-16 relative z-10' : 'mt-0'}`}>
         {posterUrl && (
           <img
             src={posterUrl}
             alt={show.name}
-            className="w-32 h-48 object-cover rounded-lg flex-shrink-0 -mt-16 relative z-10 shadow-xl"
+            className="w-28 md:w-36 flex-shrink-0 border border-[#e0dbd4] object-cover self-end"
+            style={{ aspectRatio: '2/3' }}
           />
         )}
-
-        {/* Show info */}
-        <div className="flex-1 min-w-0">
-          <h1 className="text-3xl font-bold text-white">{show.name}</h1>
-          <p className="text-gray-400 mt-1">
+        <div className={`flex-1 min-w-0 ${backdropUrl ? 'pt-20' : ''}`}>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#1a1a18]">{show.name}</h1>
+          <p className="text-[#6b6560] mt-1 text-sm">
             {show.first_air_date ? new Date(show.first_air_date).getFullYear() : ''}
-            {show.number_of_seasons ? ` · ${show.number_of_seasons} seasons` : ''}
+            {show.number_of_seasons ? ` · ${show.number_of_seasons} season${show.number_of_seasons !== 1 ? 's' : ''}` : ''}
+            {show.status ? ` · ${show.status}` : ''}
           </p>
-          <p className="text-gray-300 mt-3 text-sm leading-relaxed">{show.overview}</p>
+          <p className="text-[#1a1a18] mt-3 text-sm leading-relaxed line-clamp-4 md:line-clamp-none">{show.overview}</p>
         </div>
       </div>
 

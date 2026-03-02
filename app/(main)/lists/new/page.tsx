@@ -30,35 +30,35 @@ export default function NewListPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold text-white mb-6">Create a List</h1>
+    <div className="max-w-lg">
+      <h1 className="text-2xl font-bold text-[#1a1a18] mb-6">Create a List</h1>
       <form onSubmit={handleCreate} className="space-y-4">
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Title</label>
+          <label className="block text-xs uppercase tracking-wide text-[#6b6560] mb-1">Title</label>
           <input
             type="text"
             value={title}
             onChange={e => setTitle(e.target.value)}
             required
             placeholder="e.g. Best Shows of 2025"
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+            className="w-full border border-[#e0dbd4] bg-[#fafaf7] px-3 py-2 text-sm text-[#1a1a18] placeholder-[#6b6560] focus:outline-none focus:border-[#7c9e7a]"
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Description (optional)</label>
+          <label className="block text-xs uppercase tracking-wide text-[#6b6560] mb-1">Description (optional)</label>
           <textarea
             value={description}
             onChange={e => setDescription(e.target.value)}
             rows={3}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white resize-none focus:outline-none focus:border-blue-500"
+            className="w-full border border-[#e0dbd4] bg-[#fafaf7] px-3 py-2 text-sm text-[#1a1a18] resize-none focus:outline-none focus:border-[#7c9e7a]"
           />
         </div>
         <button
           type="submit"
           disabled={saving}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors"
+          className="w-full bg-[#7c9e7a] hover:bg-[#6a8c68] disabled:opacity-50 text-white py-3 text-sm font-semibold transition-colors"
         >
-          {saving ? 'Creating...' : 'Create List'}
+          {saving ? 'Creating…' : 'Create List'}
         </button>
       </form>
     </div>

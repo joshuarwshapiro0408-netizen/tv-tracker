@@ -4,11 +4,15 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950">
+    <div className="flex min-h-screen items-center justify-center bg-[#fafaf7] px-4">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">TVTracker</h1>
-          <p className="text-gray-400 mt-2">Track every show. Share every take.</p>
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-[#1a1a18]">
+            TVTracker
+          </h1>
+          <p className="mt-2 text-sm text-[#6b6560]">
+            A calm place to remember what you&apos;ve watched.
+          </p>
         </div>
         {children}
       </div>

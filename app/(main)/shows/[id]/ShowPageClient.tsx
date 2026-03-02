@@ -23,59 +23,68 @@ export default function ShowPageClient({ show, communityAvg, recentLogs }: Props
   const [saved, setSaved] = useState(false)
 
   return (
-    <div>
+    <div className="space-y-8">
       {/* Log button */}
-      <button
-        onClick={() => setShowModal(true)}
-        className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-6 py-2.5 font-medium transition-colors mb-8"
-      >
-        {saved ? 'Logged ✓' : 'Log this show'}
-      </button>
+      <div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-[#7c9e7a] hover:bg-[#6a8c68] text-white px-6 py-2.5 text-sm font-semibold transition-colors"
+        >
+          {saved ? 'Logged ✓' : 'Log this show'}
+        </button>
+      </div>
 
       {/* Community ratings */}
       {communityAvg && (
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-5 mb-8">
-          <h2 className="text-white font-semibold mb-4">
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6b6560] mb-3">
             Community Rating
-            <span className="text-gray-500 font-normal text-sm ml-2">({communityAvg.count} logs)</span>
+            <span className="ml-2 normal-case font-normal">({communityAvg.count} {communityAvg.count === 1 ? 'log' : 'logs'})</span>
           </h2>
-          <div className="grid grid-cols-4 gap-4 text-center">
-            {[
-              { label: 'Overall', value: communityAvg.overall },
-              { label: 'Story', value: communityAvg.story },
-              { label: 'Performance', value: communityAvg.performance },
-              { label: 'Visuals', value: communityAvg.visuals },
-            ].map(item => (
-              <div key={item.label}>
-                <div className="text-2xl font-bold text-white">{item.value.toFixed(1)}</div>
-                <div className="text-gray-500 text-xs mt-1">{item.label}</div>
-              </div>
-            ))}
+          <div className="border border-[#e0dbd4] bg-[#f0ede8]">
+            {/* Overall score bar */}
+            <div className="px-5 py-4 border-b border-[#e0dbd4] flex items-center justify-between">
+              <span className="text-[#6b6560] text-sm">Overall</span>
+              <span className="text-[#1a1a18] text-2xl font-bold tabular-nums">{communityAvg.overall.toFixed(1)}</span>
+            </div>
+            {/* Sub-scores */}
+            <div className="grid grid-cols-3 divide-x divide-[#e0dbd4] px-0">
+              {[
+                { label: 'Story', value: communityAvg.story },
+                { label: 'Performance', value: communityAvg.performance },
+                { label: 'Visuals', value: communityAvg.visuals },
+              ].map(item => (
+                <div key={item.label} className="px-4 py-3 text-center">
+                  <div className="text-lg font-bold text-[#1a1a18] tabular-nums">{item.value.toFixed(1)}</div>
+                  <div className="text-[#6b6560] text-xs mt-0.5">{item.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </section>
       )}
 
       {/* Recent reviews */}
       {recentLogs.length > 0 && (
-        <div>
-          <h2 className="text-white font-semibold mb-4">Recent Reviews</h2>
-          <div className="space-y-4">
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6b6560] mb-3">Recent Reviews</h2>
+          <div className="space-y-3">
             {recentLogs.map(log => (
-              <div key={log.id} className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+              <div key={log.id} className="border border-[#e0dbd4] bg-[#fafaf7] px-4 py-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-xs text-gray-300">
+                  <div className="w-6 h-6 bg-[#f0ede8] border border-[#e0dbd4] flex items-center justify-center text-xs text-[#6b6560] font-medium flex-shrink-0">
                     {log.profiles?.username?.[0]?.toUpperCase() || '?'}
                   </div>
-                  <span className="text-gray-300 text-sm font-medium">{log.profiles?.username}</span>
+                  <span className="text-[#1a1a18] text-sm font-medium">{log.profiles?.username}</span>
                   {log.overall_score && (
-                    <span className="ml-auto text-white font-bold">{log.overall_score.toFixed(1)}</span>
+                    <span className="ml-auto text-[#1a1a18] font-bold text-sm tabular-nums">{log.overall_score.toFixed(1)}</span>
                   )}
                 </div>
-                <p className="text-gray-300 text-sm">{log.review}</p>
+                <p className="text-[#6b6560] text-sm italic">&ldquo;{log.review}&rdquo;</p>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {showModal && (

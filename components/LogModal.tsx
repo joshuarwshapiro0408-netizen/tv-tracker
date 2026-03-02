@@ -131,14 +131,14 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-      <div className="bg-gray-900 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-gray-800">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/40">
+      <div className="bg-[#fafaf7] w-full sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto border border-[#e0dbd4]">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-800">
-          <h2 className="text-white font-semibold text-lg truncate pr-4">{show.name}</h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#e0dbd4]">
+          <h2 className="text-[#1a1a18] font-semibold text-base truncate pr-4">{show.name}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
+            className="text-[#6b6560] hover:text-[#1a1a18] transition-colors flex-shrink-0"
             aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,19 +147,21 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
           </button>
         </div>
 
-        <div className="p-5 space-y-5">
+        <div className="px-5 py-5 space-y-5">
           {/* Log as toggle */}
           <div>
-            <p className="text-gray-400 text-xs uppercase tracking-wide mb-2">Log as</p>
-            <div className="flex gap-2">
-              {(['show', 'season', 'episode'] as Level[]).map(l => (
+            <p className="text-[#6b6560] text-xs uppercase tracking-wide mb-2">Log as</p>
+            <div className="flex gap-0 border border-[#e0dbd4]">
+              {(['show', 'season', 'episode'] as Level[]).map((l, i) => (
                 <button
                   key={l}
                   onClick={() => { setLevel(l); setSelectedSeason(null); setSelectedEpisode(null) }}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors capitalize ${
+                  className={`flex-1 py-2 text-sm font-medium transition-colors capitalize ${
+                    i > 0 ? 'border-l border-[#e0dbd4]' : ''
+                  } ${
                     level === l
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:text-white'
+                      ? 'bg-[#7c9e7a] text-white'
+                      : 'bg-[#fafaf7] text-[#6b6560] hover:text-[#1a1a18]'
                   }`}
                 >
                   {l}
@@ -171,20 +173,22 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
           {/* Status selector (show level only) */}
           {level === 'show' && (
             <div>
-              <p className="text-gray-400 text-xs uppercase tracking-wide mb-2">Status</p>
-              <div className="flex gap-2">
+              <p className="text-[#6b6560] text-xs uppercase tracking-wide mb-2">Status</p>
+              <div className="flex gap-0 border border-[#e0dbd4]">
                 {([
                   { value: 'watched', label: 'Watched' },
                   { value: 'watching', label: 'Watching' },
                   { value: 'want_to_watch', label: 'Want to Watch' },
-                ] as { value: Status; label: string }[]).map(s => (
+                ] as { value: Status; label: string }[]).map((s, i) => (
                   <button
                     key={s.value}
                     onClick={() => setStatus(s.value)}
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex-1 py-2 text-xs font-medium transition-colors ${
+                      i > 0 ? 'border-l border-[#e0dbd4]' : ''
+                    } ${
                       status === s.value
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-800 text-gray-400 hover:text-white'
+                        ? 'bg-[#7c9e7a] text-white'
+                        : 'bg-[#fafaf7] text-[#6b6560] hover:text-[#1a1a18]'
                     }`}
                   >
                     {s.label}
@@ -197,14 +201,14 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
           {/* Season picker */}
           {(level === 'season' || level === 'episode') && (
             <div>
-              <label className="text-gray-400 text-xs uppercase tracking-wide block mb-2">Season</label>
+              <label className="text-[#6b6560] text-xs uppercase tracking-wide block mb-2">Season</label>
               <select
                 value={selectedSeason ?? ''}
                 onChange={e => {
                   setSelectedSeason(e.target.value ? Number(e.target.value) : null)
                   setSelectedEpisode(null)
                 }}
-                className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#fafaf7] text-[#1a1a18] px-3 py-2 text-sm border border-[#e0dbd4] focus:outline-none focus:border-[#7c9e7a]"
               >
                 <option value="">Select a season…</option>
                 {seasons.map(s => (
@@ -219,11 +223,11 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
           {/* Episode picker */}
           {level === 'episode' && selectedSeason !== null && (
             <div>
-              <label className="text-gray-400 text-xs uppercase tracking-wide block mb-2">Episode</label>
+              <label className="text-[#6b6560] text-xs uppercase tracking-wide block mb-2">Episode</label>
               <select
                 value={selectedEpisode ?? ''}
                 onChange={e => setSelectedEpisode(e.target.value ? Number(e.target.value) : null)}
-                className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#fafaf7] text-[#1a1a18] px-3 py-2 text-sm border border-[#e0dbd4] focus:outline-none focus:border-[#7c9e7a]"
               >
                 <option value="">Select an episode…</option>
                 {episodes.map(ep => (
@@ -237,69 +241,54 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
 
           {/* Ratings */}
           <div className="space-y-4">
-            <RatingInput
-              label="Story"
-              description="writing, plot, pacing"
-              value={story}
-              onChange={setStory}
-            />
-            <RatingInput
-              label="Performance"
-              description="acting, direction"
-              value={performance}
-              onChange={setPerformance}
-            />
-            <RatingInput
-              label="Visuals"
-              description="cinematography, production design"
-              value={visuals}
-              onChange={setVisuals}
-            />
+            <RatingInput label="Story" description="writing, plot, pacing" value={story} onChange={setStory} />
+            <RatingInput label="Performance" description="acting, direction" value={performance} onChange={setPerformance} />
+            <RatingInput label="Visuals" description="cinematography, production design" value={visuals} onChange={setVisuals} />
           </div>
 
           {/* Overall score preview */}
           {overallScore !== null && (
-            <div className="bg-gray-800 rounded-lg px-4 py-3 flex items-center justify-between">
-              <span className="text-gray-400 text-sm">Overall Score</span>
-              <span className="text-white font-bold text-xl tabular-nums">{overallScore.toFixed(1)}</span>
+            <div className="bg-[#f0ede8] border border-[#e0dbd4] px-4 py-3 flex items-center justify-between">
+              <span className="text-[#6b6560] text-sm">Overall Score</span>
+              <span className="text-[#1a1a18] font-bold text-xl tabular-nums">{overallScore.toFixed(1)}</span>
             </div>
           )}
 
           {/* Review */}
           <div>
-            <label className="text-gray-400 text-xs uppercase tracking-wide block mb-2">
-              Review <span className="normal-case text-gray-600">(optional)</span>
+            <label className="text-[#6b6560] text-xs uppercase tracking-wide block mb-2">
+              Review <span className="normal-case text-[#6b6560]">(optional)</span>
             </label>
             <textarea
               value={review}
               onChange={e => setReview(e.target.value)}
               placeholder="Write your thoughts…"
               rows={3}
-              className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500 resize-none placeholder-gray-600"
+              className="w-full bg-[#fafaf7] text-[#1a1a18] px-3 py-2 text-sm border border-[#e0dbd4] focus:outline-none focus:border-[#7c9e7a] resize-none placeholder-[#6b6560]"
             />
           </div>
 
           {/* Date watched */}
           <div>
-            <label className="text-gray-400 text-xs uppercase tracking-wide block mb-2">Date Watched</label>
+            <label className="text-[#6b6560] text-xs uppercase tracking-wide block mb-2">Date Watched</label>
             <input
               type="date"
               value={dateWatched}
               onChange={e => setDateWatched(e.target.value)}
-              className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 text-sm border border-gray-700 focus:outline-none focus:border-blue-500"
+              className="w-full bg-[#fafaf7] text-[#1a1a18] px-3 py-2 text-sm border border-[#e0dbd4] focus:outline-none focus:border-[#7c9e7a]"
             />
           </div>
 
           {/* Error */}
           {error && (
-            <p className="text-red-400 text-sm">{error}</p>
+            <p className="text-red-600 text-sm">{error}</p>
           )}
 
           {/* Save button */}
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
+            className="w-full bg-[#7c9e7a] hover:bg-[#6a8c68] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 transition-colors"
           >
             {saving ? 'Saving…' : 'Save Log'}
           </button>
