@@ -58,7 +58,7 @@ export default function NewListPage() {
           disabled={saving}
           className="w-full bg-[#7c9e7a] hover:bg-[#6a8c68] disabled:opacity-50 text-white py-3 text-sm font-semibold transition-colors"
         >
-          {saving ? 'Creating…' : 'Create List'}
+          {saving ? 'creating…' : 'create list'}
         </button>
       </form>
     </div>

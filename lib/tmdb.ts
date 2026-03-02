@@ -33,3 +33,11 @@ export async function getShow(id: number) {
 export async function getSeason(showId: number, seasonNumber: number) {
   return tmdbFetch(`/tv/${showId}/season/${seasonNumber}?language=en-US`)
 }
+
+export async function getTrendingShows() {
+  return tmdbFetch('/trending/tv/week?language=en-US')
+}
+
+export async function getTopRatedShows() {
+  return tmdbFetch('/tv/top_rated?language=en-US')
+}

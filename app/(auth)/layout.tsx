@@ -8,7 +8,7 @@ export default function AuthLayout({
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight text-[#1a1a18]">
-            TVTracker
+            trakr
           </h1>
           <p className="mt-2 text-sm text-[#6b6560]">
             A calm place to remember what you&apos;ve watched.

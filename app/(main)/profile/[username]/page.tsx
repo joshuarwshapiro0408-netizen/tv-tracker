@@ -70,7 +70,7 @@ export default async function ProfilePage({
                       : 'bg-[#7c9e7a] hover:bg-[#6a8c68] text-white'
                   }`}
                 >
-                  {isFollowing && isFollowing.length > 0 ? 'Following' : 'Follow'}
+                  {isFollowing && isFollowing.length > 0 ? 'following' : 'follow'}
                 </button>
               </form>
             )}
@@ -87,7 +87,7 @@ export default async function ProfilePage({
               const posterUrl = tmdbImageUrl(log.show_poster_path, 'w185')
               return (
                 <Link key={log.id} href={`/shows/${log.tmdb_show_id}`} className="group">
-                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
+                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] rounded-sm group-hover:border-[#7c9e7a] transition-colors">
                     {posterUrl ? (
                       <img
                         src={posterUrl}

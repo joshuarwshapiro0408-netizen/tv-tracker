@@ -8,7 +8,7 @@ const assistant = Assistant({
 })
 
 export const metadata: Metadata = {
-  title: 'TV Tracker',
+  title: 'trakr',
   description: 'Track and discover TV shows with friends',
 }
 

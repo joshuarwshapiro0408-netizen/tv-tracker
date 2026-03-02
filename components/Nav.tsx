@@ -35,10 +35,7 @@ export default function Nav() {
   }
 
   const links = [
-    { href: '/home', label: 'Home' },
-    { href: '/feed', label: 'Feed' },
-    { href: '/search', label: 'Search & Discover' },
-    { href: '/people', label: 'People' },
+    { href: '/search', label: 'search' },
   ]
 
   return (
@@ -47,7 +44,7 @@ export default function Nav() {
         {/* Left: logo + desktop links */}
         <div className="flex items-center gap-8">
           <Link href="/home" className="text-base font-bold tracking-tight text-[#1a1a18]">
-            TVTracker
+            trakr
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm">
             {links.map(link => (

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { tmdbImageUrl } from '@/lib/tmdb'
+import { tmdbImageUrl, getTrendingShows, getTopRatedShows } from '@/lib/tmdb'
 import Link from 'next/link'
 
 export default async function FeedPage() {
@@ -15,66 +15,28 @@ export default async function FeedPage() {
 
   const followingIds = following?.map(f => f.following_id) || []
 
-  const query = supabase
+  const logsQuery = supabase
     .from('show_logs')
     .select('*, profiles(username, avatar_url)')
     .order('created_at', { ascending: false })
     .limit(30)
 
   if (followingIds.length > 0) {
-    query.in('user_id', followingIds)
+    logsQuery.in('user_id', followingIds)
   }
 
-  const { data: logs } = await query
+  const [logsResult, trending, topRated] = await Promise.all([
+    logsQuery,
+    getTrendingShows(),
+    getTopRatedShows(),
+  ])
 
-  // Popular this week
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const { data: trendingRaw } = await supabase
-    .from('show_logs')
-    .select('tmdb_show_id, show_title, show_poster_path')
-    .gte('created_at', sevenDaysAgo)
-
-  const trendingMap = new Map<number, { title: string; poster: string | null; count: number }>()
-  trendingRaw?.forEach(log => {
-    const existing = trendingMap.get(log.tmdb_show_id)
-    trendingMap.set(log.tmdb_show_id, {
-      title: log.show_title,
-      poster: log.show_poster_path,
-      count: (existing?.count || 0) + 1,
-    })
-  })
-  const popular = Array.from(trendingMap.entries())
-    .sort((a, b) => b[1].count - a[1].count)
-    .slice(0, 6)
-    .map(([id, data]) => ({ id, ...data }))
+  const logs = logsResult.data
+  const trendingShows: { id: number; name: string; poster_path: string | null }[] = trending?.results?.slice(0, 12) || []
+  const topRatedShows: { id: number; name: string; poster_path: string | null }[] = topRated?.results?.slice(0, 12) || []
 
   return (
     <div className="max-w-2xl mx-auto space-y-10">
-
-      {/* Popular This Week */}
-      {popular.length > 0 && (
-        <section>
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6b6560] mb-4">Popular This Week</h2>
-          <div className="grid grid-cols-3 gap-3">
-            {popular.map(show => {
-              const posterUrl = tmdbImageUrl(show.poster, 'w342')
-              return (
-                <Link key={show.id} href={`/shows/${show.id}`} className="group">
-                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4]">
-                    {posterUrl ? (
-                      <img src={posterUrl} alt={show.title} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[#6b6560] text-xs text-center p-2">{show.title}</div>
-                    )}
-                  </div>
-                  <p className="text-[#1a1a18] text-xs font-medium mt-1.5 truncate">{show.title}</p>
-                  <p className="text-[#6b6560] text-[11px]">{show.count} {show.count === 1 ? 'log' : 'logs'}</p>
-                </Link>
-              )
-            })}
-          </div>
-        </section>
-      )}
 
       {/* Activity feed */}
       <section>
@@ -97,9 +59,8 @@ export default async function FeedPage() {
             const posterUrl = tmdbImageUrl(log.show_poster_path, 'w92')
             return (
               <div key={log.id} className="flex gap-4 py-4">
-                {/* Poster */}
                 <Link href={`/shows/${log.tmdb_show_id}`} className="flex-shrink-0">
-                  <div className="w-10 h-[60px] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4]">
+                  <div className="w-10 h-[60px] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] rounded-sm">
                     {posterUrl ? (
                       <img src={posterUrl} alt={log.show_title} className="w-full h-full object-cover" />
                     ) : (
@@ -108,7 +69,6 @@ export default async function FeedPage() {
                   </div>
                 </Link>
 
-                {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap text-sm">
                     <Link href={`/profile/${log.profiles?.username}`} className="text-[#1a1a18] font-semibold hover:text-[#7c9e7a] transition-colors">
@@ -144,6 +104,54 @@ export default async function FeedPage() {
           })}
         </div>
       </section>
+
+      {/* Trending on TMDB */}
+      {trendingShows.length > 0 && (
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6b6560] mb-4">Trending This Week</h2>
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {trendingShows.map(show => {
+              const posterUrl = tmdbImageUrl(show.poster_path, 'w342')
+              return (
+                <Link key={show.id} href={`/shows/${show.id}`} className="group">
+                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] rounded-sm group-hover:border-[#7c9e7a] transition-colors">
+                    {posterUrl ? (
+                      <img src={posterUrl} alt={show.name} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[#6b6560] text-xs text-center p-2">{show.name}</div>
+                    )}
+                  </div>
+                  <p className="text-[#1a1a18] text-xs font-medium mt-1.5 truncate">{show.name}</p>
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Top Rated on TMDB */}
+      {topRatedShows.length > 0 && (
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6b6560] mb-4">Top Rated</h2>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {topRatedShows.map(show => {
+              const posterUrl = tmdbImageUrl(show.poster_path, 'w185')
+              return (
+                <Link key={show.id} href={`/shows/${show.id}`} className="w-24 flex-shrink-0 group">
+                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] rounded-sm group-hover:border-[#7c9e7a] transition-colors">
+                    {posterUrl ? (
+                      <img src={posterUrl} alt={show.name} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-[#6b6560] text-xs text-center p-2">{show.name}</div>
+                    )}
+                  </div>
+                  <p className="text-[#1a1a18] text-xs font-medium mt-1.5 truncate">{show.name}</p>
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

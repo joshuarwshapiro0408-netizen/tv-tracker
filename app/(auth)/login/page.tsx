@@ -60,7 +60,7 @@ export default function LoginPage() {
           disabled={loading}
           className="w-full bg-[#7c9e7a] hover:bg-[#6a8c68] py-2.5 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? 'Signing in…' : 'Sign in'}
+          {loading ? 'signing in…' : 'sign in'}
         </button>
       </form>
       <p className="mt-4 text-center text-xs text-[#6b6560]">

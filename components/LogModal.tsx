@@ -290,7 +290,7 @@ export default function LogModal({ show, onClose, onSaved }: LogModalProps) {
             disabled={saving}
             className="w-full bg-[#7c9e7a] hover:bg-[#6a8c68] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 transition-colors"
           >
-            {saving ? 'Saving…' : 'Save Log'}
+            {saving ? 'saving…' : 'save log'}
           </button>
         </div>
       </div>
