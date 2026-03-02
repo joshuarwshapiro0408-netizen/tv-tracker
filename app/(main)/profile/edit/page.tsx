@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -15,7 +15,9 @@ export default function EditProfilePage() {
   const supabase = createClient()
   const router = useRouter()
 
+  const [originalUsername, setOriginalUsername] = useState('')
   const [username, setUsername] = useState('')
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
   const [bio, setBio] = useState('')
   const [genres, setGenres] = useState<string[]>([])
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
@@ -24,6 +26,7 @@ export default function EditProfilePage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [loaded, setLoaded] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -35,6 +38,7 @@ export default function EditProfilePage() {
         .eq('id', user.id)
         .single()
       if (profile) {
+        setOriginalUsername(profile.username || '')
         setUsername(profile.username || '')
         setBio(profile.bio || '')
         setAvatarUrl(profile.avatar_url || null)
@@ -45,6 +49,34 @@ export default function EditProfilePage() {
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Debounced username availability check
+  function handleUsernameChange(value: string) {
+    const cleaned = value.toLowerCase().replace(/[^a-z0-9_]/g, '')
+    setUsername(cleaned)
+
+    if (cleaned === originalUsername) {
+      setUsernameStatus('idle')
+      return
+    }
+
+    if (cleaned.length < 3) {
+      setUsernameStatus(cleaned.length === 0 ? 'idle' : 'invalid')
+      return
+    }
+
+    setUsernameStatus('checking')
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', cleaned)
+        .maybeSingle()
+      setUsernameStatus(data ? 'taken' : 'available')
+    }, 500)
+  }
 
   function toggleGenre(g: string) {
     setGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])
@@ -58,6 +90,9 @@ export default function EditProfilePage() {
   }
 
   async function handleSave() {
+    if (usernameStatus === 'taken' || usernameStatus === 'invalid') return
+    if (username.length < 3) { setError('Username must be at least 3 characters'); return }
+
     setSaving(true)
     setError('')
     const { data: { user } } = await supabase.auth.getUser()
@@ -80,13 +115,19 @@ export default function EditProfilePage() {
       newAvatarUrl = urlData.publicUrl
     }
 
+    const updatePayload: Record<string, unknown> = {
+      bio: bio.trim() || null,
+      avatar_url: newAvatarUrl,
+      favourite_genres: genres,
+    }
+
+    if (username !== originalUsername) {
+      updatePayload.username = username
+    }
+
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({
-        bio: bio.trim() || null,
-        avatar_url: newAvatarUrl,
-        favourite_genres: genres,
-      })
+      .update(updatePayload)
       .eq('id', user.id)
 
     if (updateError) {
@@ -104,11 +145,20 @@ export default function EditProfilePage() {
 
   const displayAvatar = avatarPreview || avatarUrl
 
+  const usernameHint = () => {
+    if (username === originalUsername) return null
+    if (usernameStatus === 'checking') return <span className="text-[#6b6560]">checking…</span>
+    if (usernameStatus === 'available') return <span className="text-[#7c9e7a]">✓ available</span>
+    if (usernameStatus === 'taken') return <span className="text-red-500">✗ already taken</span>
+    if (usernameStatus === 'invalid') return <span className="text-red-500">minimum 3 characters</span>
+    return null
+  }
+
   return (
     <div className="max-w-lg space-y-7">
       <div className="flex items-center justify-between border-b border-[#e0dbd4] pb-5">
         <h1 className="text-2xl font-bold text-[#1a1a18]">Edit Profile</h1>
-        <Link href={`/profile/${username}`} className="text-sm text-[#6b6560] hover:text-[#1a1a18] transition-colors">
+        <Link href={`/profile/${originalUsername}`} className="text-sm text-[#6b6560] hover:text-[#1a1a18] transition-colors">
           ← back
         </Link>
       </div>
@@ -132,6 +182,19 @@ export default function EditProfilePage() {
             <p className="text-xs text-[#6b6560] mt-1">JPG, PNG or WebP · max 2 MB</p>
           </div>
         </div>
+      </div>
+
+      {/* Username */}
+      <div>
+        <label className="block text-xs uppercase tracking-wide text-[#6b6560] mb-2">Username</label>
+        <input
+          type="text"
+          value={username}
+          onChange={e => handleUsernameChange(e.target.value)}
+          placeholder="your_username"
+          className="w-full border border-[#e0dbd4] bg-[#fafaf7] px-3 py-2 text-sm text-[#1a1a18] placeholder-[#6b6560] focus:outline-none focus:border-[#7c9e7a] transition-colors"
+        />
+        <div className="mt-1 text-xs min-h-[1rem]">{usernameHint()}</div>
       </div>
 
       {/* Bio */}
@@ -159,7 +222,7 @@ export default function EditProfilePage() {
               key={g}
               type="button"
               onClick={() => toggleGenre(g)}
-              className={`px-3 py-1.5 text-xs transition-colors border ${
+              className={`px-3 py-1.5 text-xs transition-colors border cursor-pointer ${
                 genres.includes(g)
                   ? 'bg-[#7c9e7a] border-[#7c9e7a] text-white'
                   : 'bg-[#fafaf7] border-[#e0dbd4] text-[#6b6560] hover:border-[#7c9e7a] hover:text-[#1a1a18]'
@@ -175,8 +238,8 @@ export default function EditProfilePage() {
 
       <button
         onClick={handleSave}
-        disabled={saving}
-        className="w-full bg-[#7c9e7a] hover:bg-[#6a8c68] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 text-sm font-semibold transition-colors"
+        disabled={saving || usernameStatus === 'taken' || usernameStatus === 'invalid'}
+        className="w-full bg-[#7c9e7a] hover:bg-[#6a8c68] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 text-sm font-semibold transition-all cursor-pointer"
       >
         {saving ? 'saving…' : 'save changes'}
       </button>

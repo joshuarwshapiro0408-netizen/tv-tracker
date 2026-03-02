@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { getTrendingShows, getShowsByNetwork, tmdbImageUrl } from '@/lib/tmdb'
 import { createClient } from '@/lib/supabase/server'
@@ -5,6 +6,7 @@ import Link from 'next/link'
 import ShowsSearch from './ShowsSearch'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = { title: 'Shows — trakr' }
 
 type TMDBResult = {
   id: number
@@ -64,17 +66,14 @@ export default async function ShowsPage() {
             const year = show.first_air_date ? new Date(show.first_air_date).getFullYear() : null
             return (
               <Link key={show.id} href={`/shows/${show.id}`} className="group">
-                <div className="relative aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
+                <div className="relative aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-all duration-200 group-hover:scale-[1.02]">
                   {posterUrl ? (
-                    <img src={posterUrl} alt={show.name} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
+                    <img src={posterUrl} alt={show.name} loading="lazy" className="w-full h-full object-cover" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-xs text-[#6b6560] text-center p-2">{show.name}</div>
                   )}
-                  <div className="absolute inset-0 bg-[#1a1a18]/0 group-hover:bg-[#1a1a18]/20 transition-colors flex items-center justify-center">
-                    <svg className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.641 0-8.57-3.007-9.963-7.178z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a18]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-3">
+                    <span className="text-white text-[10px] font-bold uppercase tracking-wide">view</span>
                   </div>
                 </div>
                 <p className="mt-2 text-xs font-semibold text-[#1a1a18] truncate">{show.name}</p>
@@ -97,12 +96,15 @@ export default async function ShowsPage() {
               const year = show.first_air_date ? new Date(show.first_air_date).getFullYear() : null
               return (
                 <Link key={show.id} href={`/shows/${show.id}`} className="group flex-shrink-0 w-32 sm:w-36">
-                  <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
+                  <div className="relative aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-all duration-200 group-hover:scale-[1.02]">
                     {posterUrl ? (
-                      <img src={posterUrl} alt={show.name} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
+                      <img src={posterUrl} alt={show.name} loading="lazy" className="w-full h-full object-cover" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-xs text-[#6b6560] text-center p-2">{show.name}</div>
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a18]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-3">
+                      <span className="text-white text-[10px] font-bold uppercase tracking-wide">view</span>
+                    </div>
                   </div>
                   <p className="mt-1.5 text-[11px] font-semibold text-[#1a1a18] truncate">{show.name}</p>
                   {year && <p className="text-[10px] text-[#6b6560]">{year}</p>}

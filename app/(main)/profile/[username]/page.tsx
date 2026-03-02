@@ -1,8 +1,14 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { tmdbImageUrl } from '@/lib/tmdb'
 import Link from 'next/link'
 import ProfileTabs from './ProfileTabs'
+
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
+  const { username } = await params
+  return { title: `${username} — trakr` }
+}
 
 export default async function ProfilePage({
   params,

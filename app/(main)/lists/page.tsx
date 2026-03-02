@@ -1,8 +1,10 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { getShow, tmdbImageUrl } from '@/lib/tmdb'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
+export const metadata: Metadata = { title: 'Lists — trakr' }
 
 type ListItem = {
   tmdb_show_id: number

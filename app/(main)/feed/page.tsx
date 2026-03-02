@@ -1,7 +1,10 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { tmdbImageUrl, getTrendingShows } from '@/lib/tmdb'
 import Link from 'next/link'
+
+export const metadata: Metadata = { title: 'Journal — trakr' }
 
 export const dynamic = 'force-dynamic'
 

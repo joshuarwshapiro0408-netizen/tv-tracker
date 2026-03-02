@@ -46,13 +46,13 @@ export default function Nav() {
   ]
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#fafaf7] border-b border-[#e0dbd4]">
+    <nav className="sticky top-0 z-50 bg-[#1a1410] border-b border-[#2d2018]">
       <div className="mx-auto flex h-12 max-w-6xl items-center justify-between px-4">
 
         {/* Logo */}
         <Link
           href={username ? '/home' : '/login'}
-          className="text-base font-bold tracking-tight text-[#1a1a18] flex-shrink-0"
+          className="text-base font-bold tracking-tight text-[#f5f0e8] flex-shrink-0 hover:text-white transition-colors"
         >
           trakr
         </Link>
@@ -65,15 +65,15 @@ export default function Nav() {
                 href="/login"
                 className={`text-xs font-bold tracking-widest transition-colors pb-0.5 ${
                   pathname === '/login'
-                    ? 'text-[#1a1a18] border-b border-[#7c9e7a]'
-                    : 'text-[#6b6560] hover:text-[#1a1a18]'
+                    ? 'text-[#f5f0e8] border-b border-[#7c9e7a]'
+                    : 'text-[#a89880] hover:text-[#f5f0e8]'
                 }`}
               >
                 SIGN IN
               </Link>
               <Link
                 href="/login?form=signup"
-                className="text-xs font-bold tracking-widest text-[#6b6560] hover:text-[#1a1a18] transition-colors"
+                className="text-xs font-bold tracking-widest text-[#a89880] hover:text-[#f5f0e8] transition-colors"
               >
                 CREATE ACCOUNT
               </Link>
@@ -85,8 +85,8 @@ export default function Nav() {
               href={link.href}
               className={`text-xs font-bold tracking-widest transition-colors pb-0.5 ${
                 isActive(link.href)
-                  ? 'text-[#1a1a18] border-b border-[#7c9e7a]'
-                  : 'text-[#6b6560] hover:text-[#1a1a18]'
+                  ? 'text-[#f5f0e8] border-b border-[#7c9e7a]'
+                  : 'text-[#a89880] hover:text-[#f5f0e8]'
               }`}
             >
               {link.label}
@@ -97,8 +97,8 @@ export default function Nav() {
               href="/feed"
               className={`text-xs font-bold tracking-widest transition-colors pb-0.5 ${
                 isActive('/feed')
-                  ? 'text-[#1a1a18] border-b border-[#7c9e7a]'
-                  : 'text-[#6b6560] hover:text-[#1a1a18]'
+                  ? 'text-[#f5f0e8] border-b border-[#7c9e7a]'
+                  : 'text-[#a89880] hover:text-[#f5f0e8]'
               }`}
             >
               JOURNAL
@@ -108,7 +108,7 @@ export default function Nav() {
 
         {/* Right */}
         <div className="hidden md:flex items-center gap-4">
-          <Link href="/search" className="text-[#6b6560] hover:text-[#1a1a18] transition-colors" aria-label="Search">
+          <Link href="/search" className="text-[#a89880] hover:text-[#f5f0e8] transition-colors" aria-label="Search">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -116,20 +116,20 @@ export default function Nav() {
           {username ? (
             <>
               <Link href={`/profile/${username}`} className="flex items-center gap-1.5 group">
-                <div className="w-6 h-6 rounded-full bg-[#f0ede8] border border-[#e0dbd4] overflow-hidden flex items-center justify-center text-[10px] font-bold text-[#6b6560] flex-shrink-0">
+                <div className="w-6 h-6 rounded-full bg-[#2d2018] border border-[#3d3020] overflow-hidden flex items-center justify-center text-[10px] font-bold text-[#a89880] flex-shrink-0">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
                   ) : (
                     username[0]?.toUpperCase()
                   )}
                 </div>
-                <span className="text-xs font-bold tracking-widest text-[#6b6560] group-hover:text-[#1a1a18] transition-colors uppercase">
+                <span className="text-xs font-bold tracking-widest text-[#a89880] group-hover:text-[#f5f0e8] transition-colors uppercase">
                   {username}
                 </span>
               </Link>
               <button
                 onClick={signOut}
-                className="text-xs font-bold tracking-widest text-[#6b6560] hover:text-[#1a1a18] transition-colors"
+                className="text-xs font-bold tracking-widest text-[#a89880] hover:text-[#f5f0e8] transition-colors cursor-pointer"
               >
                 SIGN OUT
               </button>
@@ -139,7 +139,7 @@ export default function Nav() {
 
         {/* Hamburger */}
         <button
-          className="md:hidden p-1 text-[#1a1a18]"
+          className="md:hidden p-1 text-[#f5f0e8] cursor-pointer"
           onClick={() => setMenuOpen(v => !v)}
           aria-label="Toggle menu"
         >
@@ -153,11 +153,11 @@ export default function Nav() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden border-t border-[#e0dbd4] bg-[#f5f2ed] px-4 py-4 space-y-0.5">
+        <div className="md:hidden border-t border-[#2d2018] bg-[#1a1410] px-4 py-4 space-y-0.5">
           {!username && (
             <>
-              <Link href="/login" onClick={() => setMenuOpen(false)} className="block py-2 text-xs font-semibold tracking-widest text-[#6b6560] hover:text-[#1a1a18]">SIGN IN</Link>
-              <Link href="/login?form=signup" onClick={() => setMenuOpen(false)} className="block py-2 text-xs font-semibold tracking-widest text-[#6b6560] hover:text-[#1a1a18]">CREATE ACCOUNT</Link>
+              <Link href="/login" onClick={() => setMenuOpen(false)} className="block py-2 text-xs font-semibold tracking-widest text-[#a89880] hover:text-[#f5f0e8]">SIGN IN</Link>
+              <Link href="/login?form=signup" onClick={() => setMenuOpen(false)} className="block py-2 text-xs font-semibold tracking-widest text-[#a89880] hover:text-[#f5f0e8]">CREATE ACCOUNT</Link>
             </>
           )}
           {browseLinks.map(link => (
@@ -166,7 +166,7 @@ export default function Nav() {
               href={link.href}
               onClick={() => setMenuOpen(false)}
               className={`block py-2 text-xs font-semibold tracking-widest transition-colors ${
-                isActive(link.href) ? 'text-[#1a1a18]' : 'text-[#6b6560] hover:text-[#1a1a18]'
+                isActive(link.href) ? 'text-[#f5f0e8]' : 'text-[#a89880] hover:text-[#f5f0e8]'
               }`}
             >
               {link.label}
@@ -174,10 +174,10 @@ export default function Nav() {
           ))}
           {username && (
             <>
-              <Link href="/feed" onClick={() => setMenuOpen(false)} className="block py-2 text-xs font-semibold tracking-widest text-[#6b6560] hover:text-[#1a1a18]">JOURNAL</Link>
-              <Link href="/search" onClick={() => setMenuOpen(false)} className="block py-2 text-xs font-semibold tracking-widest text-[#6b6560] hover:text-[#1a1a18]">SEARCH</Link>
-              <Link href={`/profile/${username}`} onClick={() => setMenuOpen(false)} className="block py-2 text-xs font-semibold tracking-widest text-[#6b6560] hover:text-[#1a1a18] uppercase">{username}</Link>
-              <button onClick={signOut} className="block w-full text-left py-2 text-xs font-semibold tracking-widest text-[#6b6560] hover:text-[#1a1a18]">SIGN OUT</button>
+              <Link href="/feed" onClick={() => setMenuOpen(false)} className="block py-2 text-xs font-semibold tracking-widest text-[#a89880] hover:text-[#f5f0e8]">JOURNAL</Link>
+              <Link href="/search" onClick={() => setMenuOpen(false)} className="block py-2 text-xs font-semibold tracking-widest text-[#a89880] hover:text-[#f5f0e8]">SEARCH</Link>
+              <Link href={`/profile/${username}`} onClick={() => setMenuOpen(false)} className="block py-2 text-xs font-semibold tracking-widest text-[#a89880] hover:text-[#f5f0e8] uppercase">{username}</Link>
+              <button onClick={signOut} className="block w-full text-left py-2 text-xs font-semibold tracking-widest text-[#a89880] hover:text-[#f5f0e8] cursor-pointer">SIGN OUT</button>
             </>
           )}
         </div>

@@ -1,6 +1,13 @@
-import { getShow, getSimilarShows, getShowExternalIds, tmdbImageUrl } from '@/lib/tmdb'
+import type { Metadata } from 'next'
+import { getShow, getSimilarShows, getShowExternalIds, getWatchProviders, tmdbImageUrl } from '@/lib/tmdb'
 import { createClient } from '@/lib/supabase/server'
 import ShowPageClient from './ShowPageClient'
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const show = await getShow(Number(id)).catch(() => null)
+  return { title: show ? `${show.name} — trakr` : 'Show — trakr' }
+}
 
 export default async function ShowPage({
   params,
@@ -10,10 +17,11 @@ export default async function ShowPage({
   const { id } = await params
   const showId = Number(id)
 
-  const [show, similar, externalIds, supabase] = await Promise.all([
+  const [show, similar, externalIds, watchProviders, supabase] = await Promise.all([
     getShow(showId),
     getSimilarShows(showId).catch(() => null),
     getShowExternalIds(showId).catch(() => null),
+    getWatchProviders(showId).catch(() => null),
     createClient(),
   ])
 
@@ -45,6 +53,33 @@ export default async function ShowPage({
   const posterUrl = tmdbImageUrl(show.poster_path, 'w342')
   const similarShows = similar?.results?.slice(0, 12) || []
   const imdbId: string | null = externalIds?.imdb_id || null
+
+  // Watch providers — US flatrate + rent
+  const usProviders = watchProviders?.results?.US || null
+  const streamingProviders: { provider_id: number; provider_name: string; logo_path: string }[] = [
+    ...(usProviders?.flatrate || []),
+    ...(usProviders?.rent || []),
+  ]
+  // Deduplicate by provider_id
+  const seenIds = new Set<number>()
+  const uniqueProviders = streamingProviders.filter(p => {
+    if (seenIds.has(p.provider_id)) return false
+    seenIds.add(p.provider_id)
+    return true
+  })
+
+  const providerLinks: Record<string, string> = {
+    'Netflix': 'https://www.netflix.com',
+    'Hulu': 'https://www.hulu.com',
+    'Max': 'https://www.max.com',
+    'HBO Max': 'https://www.max.com',
+    'Apple TV+': 'https://tv.apple.com',
+    'Amazon Prime Video': 'https://www.primevideo.com',
+    'Prime Video': 'https://www.primevideo.com',
+    'Disney+': 'https://www.disneyplus.com',
+    'Peacock': 'https://www.peacocktv.com',
+    'Paramount+': 'https://www.paramountplus.com',
+  }
 
   return (
     <div className="-mx-4 -mt-8">
@@ -78,7 +113,7 @@ export default async function ShowPage({
                 ))}
               </div>
             )}
-            <h1 className="text-2xl md:text-4xl font-bold text-[#1a1a18] leading-tight">{show.name}</h1>
+            <h1 className="font-playfair text-2xl md:text-4xl font-bold text-[#1a1a18] leading-tight">{show.name}</h1>
             <p className="text-sm text-[#6b6560] mt-1">
               {show.first_air_date ? new Date(show.first_air_date).getFullYear() : ''}
               {show.number_of_seasons ? ` · ${show.number_of_seasons} season${show.number_of_seasons !== 1 ? 's' : ''}` : ''}
@@ -115,6 +150,35 @@ export default async function ShowPage({
               )}
             </div>
           </div>
+        </div>
+
+        {/* Where to Watch */}
+        <div className="mb-8 pb-8 border-b border-[#e0dbd4]">
+          <h2 className="text-[10px] font-bold uppercase tracking-widest text-[#6b6560] mb-3">Where to Watch</h2>
+          {uniqueProviders.length > 0 ? (
+            <div className="flex flex-wrap gap-3">
+              {uniqueProviders.map(p => {
+                const logoUrl = tmdbImageUrl(p.logo_path, 'w92')
+                const href = providerLinks[p.provider_name]
+                const inner = (
+                  <div className="w-10 h-10 overflow-hidden border border-[#e0dbd4] hover:border-[#7c9e7a] transition-colors" title={p.provider_name}>
+                    {logoUrl && (
+                      <img src={logoUrl} alt={p.provider_name} className="w-full h-full object-cover" loading="lazy" />
+                    )}
+                  </div>
+                )
+                return href ? (
+                  <a key={p.provider_id} href={href} target="_blank" rel="noopener noreferrer">
+                    {inner}
+                  </a>
+                ) : (
+                  <div key={p.provider_id}>{inner}</div>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-xs text-[#6b6560]">not currently streaming in your region.</p>
+          )}
         </div>
 
         {/* Client section: log button + tabs */}

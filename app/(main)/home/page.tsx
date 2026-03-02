@@ -1,7 +1,10 @@
+import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getTrendingShows, tmdbImageUrl } from '@/lib/tmdb'
+
+export const metadata: Metadata = { title: 'Home — trakr' }
 
 export const dynamic = 'force-dynamic'
 
@@ -88,7 +91,7 @@ export default async function HomePage() {
                 <Link key={show.id} href={`/shows/${show.id}`} className="group flex-shrink-0 w-[88px]">
                   <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
                     {posterUrl ? (
-                      <img src={posterUrl} alt={show.name} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
+                      <img src={posterUrl} alt={show.name} loading="lazy" className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-[10px] text-[#6b6560] text-center p-1">{show.name}</div>
                     )}
@@ -116,7 +119,7 @@ export default async function HomePage() {
                 <Link key={log.id} href={`/shows/${log.tmdb_show_id}`} className="w-[88px] flex-shrink-0 group">
                   <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
                     {posterUrl ? (
-                      <img src={posterUrl} alt={log.show_title} className="h-full w-full object-cover group-hover:opacity-90 transition-opacity" />
+                      <img src={posterUrl} alt={log.show_title} loading="lazy" className="h-full w-full object-cover group-hover:opacity-90 transition-opacity" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center px-1 text-center text-[10px] text-[#6b6560]">
                         {log.show_title}

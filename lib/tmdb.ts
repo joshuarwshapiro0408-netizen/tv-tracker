@@ -59,3 +59,7 @@ export async function getShowsByNetwork(networkId: number) {
     `/discover/tv?with_networks=${networkId}&sort_by=popularity.desc&language=en-US&page=1`
   )
 }
+
+export async function getWatchProviders(showId: number) {
+  return tmdbFetch(`/tv/${showId}/watch/providers`)
+}

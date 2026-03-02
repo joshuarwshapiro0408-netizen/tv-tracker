@@ -72,23 +72,25 @@ export default function LandingPage({
         {/* Headline */}
         <div className="relative z-10 text-center px-6 max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-widest text-[#7c9e7a] mb-5">
-            social tv tracking
+            the home for tv obsessives
           </p>
-          <h1 className="text-4xl md:text-6xl font-bold text-[#1a1a18] leading-[1.15] mb-8">
-            track the shows<br className="hidden sm:block" /> you&apos;ve watched.<br />
-            save those you<br className="hidden sm:block" /> want to see.<br />
-            tell your friends<br className="hidden sm:block" /> what&apos;s good.
+          <h1 className="font-playfair text-4xl md:text-6xl font-bold text-[#1a1a18] leading-[1.15] mb-4">
+            track every show<br className="hidden sm:block" /> you&apos;ve watched.<br />
+            remember every<br className="hidden sm:block" /> take you had.
           </h1>
+          <p className="text-base md:text-lg text-[#6b6560] mb-8 leading-relaxed">
+            share what&apos;s worth watching.
+          </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <button
               onClick={() => setModal('signup')}
-              className="bg-[#7c9e7a] hover:bg-[#6a8c68] text-white px-8 py-3 text-sm font-semibold tracking-wide transition-colors"
+              className="bg-[#7c9e7a] hover:bg-[#6a8c68] active:scale-95 text-white px-8 py-3 text-sm font-semibold tracking-wide transition-all cursor-pointer"
             >
               get started — it&apos;s free
             </button>
             <button
               onClick={() => setModal('login')}
-              className="border border-[#1a1a18] text-[#1a1a18] hover:bg-[#f0ede8] px-8 py-3 text-sm font-semibold tracking-wide transition-colors"
+              className="border border-[#1a1a18] text-[#1a1a18] hover:bg-[#f0ede8] active:scale-95 px-8 py-3 text-sm font-semibold tracking-wide transition-all cursor-pointer"
             >
               sign in
             </button>
@@ -111,7 +113,7 @@ export default function LandingPage({
             ))}
           </div>
           <p className="text-center text-[#6b6560] text-xs font-semibold tracking-widest uppercase mt-6">
-            the social network for tv lovers
+            built for people who take tv seriously
           </p>
         </div>
       )}

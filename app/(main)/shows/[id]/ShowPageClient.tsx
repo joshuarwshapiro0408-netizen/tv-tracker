@@ -32,7 +32,7 @@ export default function ShowPageClient({ show, communityAvg, recentLogs, similar
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setShowModal(true)}
-          className="bg-[#7c9e7a] hover:bg-[#6a8c68] text-white px-5 py-2 text-xs font-semibold tracking-wide uppercase transition-colors"
+          className="bg-[#7c9e7a] hover:bg-[#6a8c68] active:scale-95 text-white px-5 py-2 text-xs font-semibold tracking-wide uppercase transition-all cursor-pointer"
         >
           {saved ? '✓ logged' : 'log this show'}
         </button>
@@ -77,7 +77,7 @@ export default function ShowPageClient({ show, communityAvg, recentLogs, similar
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`text-[10px] font-semibold tracking-widest pb-3 transition-colors border-b-2 -mb-px ${
+              className={`text-[10px] font-semibold tracking-widest pb-3 transition-colors border-b-2 -mb-px cursor-pointer ${
                 tab === t.key
                   ? 'text-[#1a1a18] border-[#7c9e7a]'
                   : 'text-[#6b6560] border-transparent hover:text-[#1a1a18]'
@@ -97,7 +97,7 @@ export default function ShowPageClient({ show, communityAvg, recentLogs, similar
           ) : (
             <div className="space-y-3">
               {recentLogs.map(log => (
-                <div key={log.id} className="border border-[#e0dbd4] bg-[#fafaf7] px-4 py-3">
+                <div key={log.id} className="border border-[#e0dbd4] bg-[#fafaf7] px-4 py-3 hover:border-l-[#7c9e7a] hover:border-l-2 transition-all duration-200">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-6 h-6 rounded-full bg-[#f0ede8] border border-[#e0dbd4] overflow-hidden flex items-center justify-center text-[10px] font-bold text-[#6b6560] flex-shrink-0">
                       {log.profiles?.avatar_url
@@ -143,10 +143,13 @@ export default function ShowPageClient({ show, communityAvg, recentLogs, similar
                 const year = show.first_air_date ? new Date(show.first_air_date).getFullYear() : null
                 return (
                   <Link key={show.id} href={`/shows/${show.id}`} className="group">
-                    <div className="aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-colors">
+                    <div className="relative aspect-[2/3] overflow-hidden bg-[#f0ede8] border border-[#e0dbd4] group-hover:border-[#7c9e7a] transition-all duration-200 group-hover:scale-[1.02]">
                       {posterUrl
-                        ? <img src={posterUrl} alt={show.name} className="w-full h-full object-cover group-hover:opacity-90 transition-opacity" />
+                        ? <img src={posterUrl} alt={show.name} loading="lazy" className="w-full h-full object-cover" />
                         : <div className="flex h-full w-full items-center justify-center text-xs text-[#6b6560] text-center p-1">{show.name}</div>}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a18]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end justify-center pb-3">
+                        <span className="text-white text-[10px] font-bold uppercase tracking-wide">view</span>
+                      </div>
                     </div>
                     <p className="mt-1.5 text-[11px] font-semibold text-[#1a1a18] truncate">{show.name}</p>
                     {year && <p className="text-[10px] text-[#6b6560]">{year}</p>}
