@@ -39,7 +39,7 @@ export default function EditProfilePage() {
       if (!user) { router.push('/login'); return }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('username, bio, avatar_url, favourite_genres, favourite_show_ids')
+        .select('username, bio, avatar_url, favourite_genres')
         .eq('id', user.id)
         .single()
       if (profile) {
@@ -48,7 +48,12 @@ export default function EditProfilePage() {
         setBio(profile.bio || '')
         setAvatarUrl(profile.avatar_url || null)
         setGenres((profile as { favourite_genres?: string[] }).favourite_genres || [])
-        const ids: number[] = (profile as { favourite_show_ids?: number[] }).favourite_show_ids || []
+        const { data: showIdsRow } = await supabase
+          .from('profiles')
+          .select('favourite_show_ids')
+          .eq('id', user.id)
+          .single()
+        const ids: number[] = (showIdsRow as { favourite_show_ids?: number[] } | null)?.favourite_show_ids || []
         if (ids.length > 0) {
           const shows = await Promise.all(
             ids.slice(0, 3).map(async id => {

@@ -21,11 +21,18 @@ export default async function ProfilePage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, username, bio, avatar_url, favourite_genres, favourite_show_ids')
+    .select('id, username, bio, avatar_url, favourite_genres')
     .eq('username', username)
     .single()
 
   if (!profile) notFound()
+
+  // Fetch favourite_show_ids separately — column may not exist yet
+  const { data: showIdsRow } = await supabase
+    .from('profiles')
+    .select('favourite_show_ids')
+    .eq('id', profile.id)
+    .single()
 
   const isOwnProfile = user?.id === profile.id
 
@@ -74,7 +81,7 @@ export default async function ProfilePage({
   ])
 
   const favouriteGenres: string[] = (profile as { favourite_genres?: string[] }).favourite_genres ?? []
-  const favouriteShowIds: number[] = (profile as { favourite_show_ids?: number[] }).favourite_show_ids ?? []
+  const favouriteShowIds: number[] = (showIdsRow as { favourite_show_ids?: number[] } | null)?.favourite_show_ids ?? []
 
   // Fetch TMDB data for favourite shows
   const favouriteShows = await Promise.all(
