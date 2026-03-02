@@ -41,3 +41,7 @@ export async function getTrendingShows() {
 export async function getTopRatedShows() {
   return tmdbFetch('/tv/top_rated?language=en-US')
 }
+
+export async function getPopularShows() {
+  return tmdbFetch('/tv/popular?language=en-US')
+}

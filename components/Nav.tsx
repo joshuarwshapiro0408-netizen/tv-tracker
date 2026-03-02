@@ -36,6 +36,8 @@ export default function Nav() {
 
   const links = [
     { href: '/search', label: 'search' },
+    { href: '/feed', label: 'feed' },
+    { href: '/discover', label: 'discover' },
   ]
 
   return (

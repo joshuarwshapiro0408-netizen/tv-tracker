@@ -15,7 +15,7 @@ export default async function ProfilePage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, username, bio, avatar_url, favourite_genres')
     .eq('username', username)
     .single()
 
@@ -42,17 +42,30 @@ export default async function ProfilePage({
     .order('created_at', { ascending: false })
     .limit(24)
 
+  const favouriteGenres: string[] = (profile as { favourite_genres?: string[] }).favourite_genres ?? []
+
   return (
     <div className="space-y-8">
       {/* Profile header */}
       <div className="border-b border-[#e0dbd4] pb-6">
         <div className="flex items-start gap-5">
-          <div className="w-16 h-16 bg-[#f0ede8] border border-[#e0dbd4] flex items-center justify-center text-2xl font-bold text-[#6b6560] flex-shrink-0">
-            {profile.username[0].toUpperCase()}
+          <div className="w-16 h-16 bg-[#f0ede8] border border-[#e0dbd4] overflow-hidden flex items-center justify-center text-2xl font-bold text-[#6b6560] flex-shrink-0">
+            {profile.avatar_url ? (
+              <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
+            ) : (
+              profile.username[0].toUpperCase()
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-[#1a1a18]">{profile.username}</h1>
-            {profile.bio && <p className="text-[#6b6560] mt-1 text-sm">{profile.bio}</p>}
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-bold text-[#1a1a18]">{profile.username}</h1>
+              {isOwnProfile && (
+                <Link href="/profile/edit" className="text-xs text-[#6b6560] hover:text-[#1a1a18] border border-[#e0dbd4] px-2.5 py-1 transition-colors hover:border-[#1a1a18]">
+                  edit profile
+                </Link>
+              )}
+            </div>
+            {profile.bio && <p className="text-[#6b6560] mt-1.5 text-sm">{profile.bio}</p>}
             <div className="flex gap-6 mt-3 text-sm text-[#6b6560]">
               <span><span className="text-[#1a1a18] font-bold">{loggedCount || 0}</span> logged</span>
               <span><span className="text-[#1a1a18] font-bold">{followerCount || 0}</span> followers</span>
@@ -73,6 +86,16 @@ export default async function ProfilePage({
                   {isFollowing && isFollowing.length > 0 ? 'following' : 'follow'}
                 </button>
               </form>
+            )}
+            {/* Favourite genres */}
+            {favouriteGenres.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-3">
+                {favouriteGenres.map((g: string) => (
+                  <span key={g} className="text-[11px] text-[#6b6560] border border-[#e0dbd4] px-2 py-0.5 bg-[#f0ede8]">
+                    {g}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
         </div>
