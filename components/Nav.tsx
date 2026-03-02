@@ -4,11 +4,28 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function Nav() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [username, setUsername] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function getUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', user.id)
+          .single()
+        setUsername(profile?.username || null)
+      }
+    }
+    getUser()
+  }, [])
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -45,12 +62,32 @@ export default function Nav() {
             ))}
           </div>
         </div>
-        <button
-          onClick={signOut}
-          className="text-sm text-gray-400 hover:text-white transition-colors"
-        >
-          Sign out
-        </button>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/lists/new"
+            className="text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            + List
+          </Link>
+          {username && (
+            <Link
+              href={`/profile/${username}`}
+              className={`text-sm transition-colors ${
+                pathname === `/profile/${username}`
+                  ? 'text-white font-medium'
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              {username}
+            </Link>
+          )}
+          <button
+            onClick={signOut}
+            className="text-sm text-gray-400 hover:text-white transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     </nav>
   )
